@@ -13,6 +13,8 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th>Assignee</th>
+          <th>Repeat Type</th>
           <th>Period</th>
           <th>Value</th>
           <th>Next</th>
@@ -23,6 +25,8 @@
         {{ range .results }}
         <tr>
           <td>{{.Name}}</td>
+          <td>{{.Assignee}}</td>
+          <td>{{.RType}}</td>
           <td>{{.Period}}</td>
           <td>{{.Value}}</td>
           <td>{{.Next}}</td>
