@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <title>Sallings Home Management Thing - Admin</title>
+    <link rel="stylesheet" href="/static/stylesheets/screen.css" type="text/css">
+  </head>
+
+  <body>
+    <h1>Administration</h1>
+
+    <h2>Current Tasks:</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Period</th>
+          <th>Value</th>
+          <th>Next</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {{ range .results }}
+        <tr>
+          <td>{{.Name}}</td>
+          <td>{{.Period}}</td>
+          <td>{{.Value}}</td>
+          <td>{{.Next}}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+
+    </table>
+
+    <form method="POST" action="/admin/tasks/new">
+      Name: <input type="text" name="name" /><br/>
+      Period: <input type="text" name="period" /><br/>
+      Value: <input type="text" name="value" /><br/>
+      <input type="submit" />
+    </form>
+
+  </body>
+</html>
