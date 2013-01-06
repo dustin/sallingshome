@@ -25,10 +25,11 @@ func iterateTasks(c appengine.Context) chan Task {
 		defer close(ch)
 		for t := q.Run(c); ; {
 			var x Task
-			_, err := t.Next(&x)
+			k, err := t.Next(&x)
 			if err == datastore.Done {
 				break
 			}
+			x.Key = k
 			ch <- x
 		}
 	}()
@@ -50,10 +51,12 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task := Task{
-		Name:   r.FormValue("name"),
-		Period: asInt(r.FormValue("period")),
-		Value:  asInt(r.FormValue("value")),
-		Next:   time.Now().UTC(),
+		Name:     r.FormValue("name"),
+		Assignee: r.FormValue("assignee"),
+		RType:    r.FormValue("rtype"),
+		Period:   asInt(r.FormValue("period")),
+		Value:    asInt(r.FormValue("value")),
+		Next:     time.Now().UTC(),
 	}
 
 	k, err := datastore.Put(c,
@@ -70,7 +73,8 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 func adminListTasks(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "admin_tasks.html",
 		map[string]interface{}{
-			"results": iterateTasks(appengine.NewContext(r)),
+			"results":   iterateTasks(appengine.NewContext(r)),
+			"assignees": []string{"Jennalynn", "Sidney"},
 		})
 }
 

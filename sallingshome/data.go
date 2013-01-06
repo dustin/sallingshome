@@ -14,6 +14,8 @@ type Task struct {
 	Value    int       `json:"value"` // cents
 	Next     time.Time `json:next"`
 	Disabled bool      `json:"disabled"`
+
+	Key *datastore.Key `datastore:"-"`
 }
 
 type LoggedTask struct {
