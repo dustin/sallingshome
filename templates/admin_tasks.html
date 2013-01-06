@@ -44,7 +44,7 @@
       <select name="assignee">
         <option value="">-Anyone-</option>
         {{ range .assignees }}
-        <option value="{{.}}">{{.}}</option>
+        <option value="{{.Name}}">{{.Name}} &lt;{{.Email}}&gt;</option>
         {{ end }}
       </select>
         <br/>

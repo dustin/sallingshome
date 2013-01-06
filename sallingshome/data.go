@@ -18,6 +18,14 @@ type Task struct {
 	Key *datastore.Key `datastore:"-"`
 }
 
+type User struct {
+	Name     string
+	Email    string
+	Disabled bool
+
+	Key *datastore.Key `datastore:"-"`
+}
+
 type LoggedTask struct {
 	Task      *datastore.Key
 	User      *datastore.Key

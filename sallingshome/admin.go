@@ -14,6 +14,10 @@ func init() {
 	http.HandleFunc("/admin/tasks/new", adminNewTask)
 	http.HandleFunc("/admin/tasks/toggle", adminToggleTask)
 	http.HandleFunc("/admin/tasks/", adminListTasks)
+
+	http.HandleFunc("/admin/users/", adminListUsers)
+	http.HandleFunc("/admin/users/new", adminNewUser)
+
 	http.HandleFunc("/admin/", serveAdmin)
 }
 
@@ -96,10 +100,60 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func adminListTasks(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
 	templates.ExecuteTemplate(w, "admin_tasks.html",
 		map[string]interface{}{
-			"results":   iterateTasks(appengine.NewContext(r)),
-			"assignees": []string{"Jennalynn", "Sidney"},
+			"results":   iterateTasks(c),
+			"assignees": iterateUsers(c),
+		})
+}
+
+func iterateUsers(c appengine.Context) chan User {
+	ch := make(chan User)
+
+	q := datastore.NewQuery("User").Order("Name")
+
+	go func() {
+		defer close(ch)
+		for t := q.Run(c); ; {
+			var x User
+			k, err := t.Next(&x)
+			if err == datastore.Done {
+				break
+			}
+			x.Key = k
+			ch <- x
+		}
+	}()
+
+	return ch
+}
+
+func adminNewUser(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	r.ParseForm()
+
+	user := User{
+		Name:  r.FormValue("name"),
+		Email: r.FormValue("email"),
+	}
+
+	k, err := datastore.Put(c,
+		datastore.NewIncompleteKey(c, "User", nil), &user)
+	if err != nil {
+		c.Warningf("Error storing user:  %v", err)
+		panic(err)
+	}
+	c.Infof("Stored new thing with key %v", k)
+
+	http.Redirect(w, r, "/admin/users/", 307)
+}
+
+func adminListUsers(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "admin_users.html",
+		map[string]interface{}{
+			"results": iterateUsers(appengine.NewContext(r)),
 		})
 }
 
