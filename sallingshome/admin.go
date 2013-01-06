@@ -91,7 +91,7 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 	k, err := datastore.Put(c,
 		datastore.NewIncompleteKey(c, "Task", nil), &task)
 	if err != nil {
-		c.Warningf("Error storing stats item:  %v", err)
+		c.Warningf("Error storing task:  %v", err)
 		panic(err)
 	}
 	c.Infof("Stored new thing with key %v", k)
