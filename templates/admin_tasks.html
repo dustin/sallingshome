@@ -24,8 +24,8 @@
 
       <tbody>
         {{ range .results }}
-        <tr>
-          <td>{{.Key}}</td>
+        <tr class="disabled-{{.Disabled}}">
+          <td><a href="/admin/tasks/toggle?id={{.Key.Encode}}">{{.Key}}</a></td>
           <td>{{.Name}}</td>
           <td>{{.Assignee}}</td>
           <td>{{.RType}}</td>

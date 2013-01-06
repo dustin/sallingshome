@@ -12,6 +12,7 @@ import (
 
 func init() {
 	http.HandleFunc("/admin/tasks/new", adminNewTask)
+	http.HandleFunc("/admin/tasks/toggle", adminToggleTask)
 	http.HandleFunc("/admin/tasks/", adminListTasks)
 	http.HandleFunc("/admin/", serveAdmin)
 }
@@ -19,7 +20,7 @@ func init() {
 func iterateTasks(c appengine.Context) chan Task {
 	ch := make(chan Task)
 
-	q := datastore.NewQuery("Task").Order("Name")
+	q := datastore.NewQuery("Task").Order("Disabled").Order("Name")
 
 	go func() {
 		defer close(ch)
@@ -35,6 +36,30 @@ func iterateTasks(c appengine.Context) chan Task {
 	}()
 
 	return ch
+}
+
+func adminToggleTask(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	k, err := datastore.DecodeKey(r.FormValue("id"))
+	if err != nil {
+		panic(err)
+	}
+
+	c.Infof("Toggling object with key %v", k)
+
+	task := &Task{}
+	if err := datastore.Get(c, k, task); err != nil {
+		panic(err)
+	}
+
+	task.Disabled = !task.Disabled
+
+	if _, err := datastore.Put(c, k, task); err != nil {
+		panic(err)
+	}
+
+	http.Redirect(w, r, "/admin/tasks/", 307)
 }
 
 func adminNewTask(w http.ResponseWriter, r *http.Request) {
