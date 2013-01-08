@@ -34,20 +34,25 @@ func iterateUserTasks(c appengine.Context, u User) chan Task {
 	ch := make(chan Task)
 
 	wg := sync.WaitGroup{}
+	now := time.Now()
 
 	querier := func(assignee string) {
 		defer wg.Done()
 
 		q := datastore.NewQuery("Task").
+			Filter("Next < ", now).
 			Filter("Disabled = ", false).
 			Filter("Assignee = ", assignee).
-			Order("Name")
+			Order("Next")
 
 		for t := q.Run(c); ; {
 			var x Task
 			k, err := t.Next(&x)
 			if err == datastore.Done {
 				break
+			} else if err != nil {
+				c.Errorf("Error retrieving tasks: %v", err)
+				return
 			}
 			x.Key = k
 			ch <- x
