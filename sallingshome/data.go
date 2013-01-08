@@ -13,10 +13,23 @@ type Task struct {
 	RType       string    `json:"repeatType"`
 	Assignee    string    `json:"assignee"`
 	Value       int       `json:"value"` // cents
+	Prev        time.Time `json:"prev"`
 	Next        time.Time `json:next"`
 	Disabled    bool      `json:"disabled"`
 
 	Key *datastore.Key `datastore:"-"`
+}
+
+func (t *Task) updateTime() {
+	t.Next = time.Now().Add(time.Hour * 24 * time.Duration(t.Period))
+
+	h, m, s := t.Next.Clock()
+	d := time.Duration(time.Hour*time.Duration(h)) +
+		time.Duration(time.Minute*time.Duration(m)) +
+		time.Duration(time.Second*time.Duration(s)) +
+		time.Duration(t.Next.Nanosecond())
+
+	t.Next = t.Next.Add(-d)
 }
 
 type User struct {
@@ -31,5 +44,6 @@ type LoggedTask struct {
 	Task      *datastore.Key
 	User      *datastore.Key
 	Completed time.Time
-	Paid      *time.Time
+	PaidTime  time.Time
+	Paid      bool
 }
