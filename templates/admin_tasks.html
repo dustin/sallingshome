@@ -47,10 +47,12 @@
         <option value="{{.Name}}">{{.Name}} &lt;{{.Email}}&gt;</option>
         {{ end }}
       </select>
-        <br/>
+      <br/>
       Repeat: <select name="rtype"><option value="Normal">Normal</option></select>
-     <input type="text" name="period" /><br/>
+      <input type="text" name="period" /><br/>
       Value: <input type="text" name="value" /><br/>
+      Description:<br/>
+      <textarea name="description"></textarea>
       <input type="submit" />
     </form>
 

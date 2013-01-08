@@ -7,13 +7,14 @@ import (
 )
 
 type Task struct {
-	Name     string    `json:"name"`
-	Period   int       `json:"period"`
-	RType    string    `json:"repeatType"`
-	Assignee string    `json:"assignee"`
-	Value    int       `json:"value"` // cents
-	Next     time.Time `json:next"`
-	Disabled bool      `json:"disabled"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Period      int       `json:"period"`
+	RType       string    `json:"repeatType"`
+	Assignee    string    `json:"assignee"`
+	Value       int       `json:"value"` // cents
+	Next        time.Time `json:next"`
+	Disabled    bool      `json:"disabled"`
 
 	Key *datastore.Key `datastore:"-"`
 }

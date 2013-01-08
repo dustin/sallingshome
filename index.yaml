@@ -12,6 +12,17 @@ indexes:
 
 - kind: Task
   properties:
+  - name: Assignee
+  - name: Disabled
+  - name: Name
+
+- kind: Task
+  properties:
+  - name: Assignee
+  - name: Name
+
+- kind: Task
+  properties:
   - name: Disabled
   - name: Name
 

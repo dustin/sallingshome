@@ -80,12 +80,13 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task := Task{
-		Name:     r.FormValue("name"),
-		Assignee: r.FormValue("assignee"),
-		RType:    r.FormValue("rtype"),
-		Period:   asInt(r.FormValue("period")),
-		Value:    asInt(r.FormValue("value")),
-		Next:     time.Now().UTC(),
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
+		Assignee:    r.FormValue("assignee"),
+		RType:       r.FormValue("rtype"),
+		Period:      asInt(r.FormValue("period")),
+		Value:       asInt(r.FormValue("value")),
+		Next:        time.Now().UTC(),
 	}
 
 	k, err := datastore.Put(c,
@@ -140,7 +141,7 @@ func adminNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	k, err := datastore.Put(c,
-		datastore.NewIncompleteKey(c, "User", nil), &user)
+		datastore.NewKey(c, "User", user.Email, 0, nil), &user)
 	if err != nil {
 		c.Warningf("Error storing user:  %v", err)
 		panic(err)

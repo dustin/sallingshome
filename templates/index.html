@@ -5,6 +5,17 @@
   </head>
 
   <body>
-    <p>Dustin was here.</p>
+    <p>Welcome back, {{.user}}.</p>
+
+    <h2>Your Tasks:</h2>
+    <form method="POST" action="/complete">
+      <ul>
+        {{ range .tasks }}
+        <li><label><input type="checkbox" name="task"
+                   value="{{.Key.Encode}}" /> {{.Name}}</label></li>
+        {{ end }}
+      </ul>
+      <input type="submit" />
+    </form>
   </body>
 </html>
