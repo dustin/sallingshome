@@ -34,7 +34,7 @@ func iterateTasks(c appengine.Context) chan Task {
 		for t := q.Run(c); ; {
 			var x Task
 			k, err := t.Next(&x)
-			if err == datastore.Done {
+			if err != nil {
 				break
 			}
 			x.Key = k
@@ -122,7 +122,7 @@ func iterateUsers(c appengine.Context) chan User {
 		for t := q.Run(c); ; {
 			var x User
 			k, err := t.Next(&x)
-			if err == datastore.Done {
+			if err != nil {
 				break
 			}
 			x.Key = k
@@ -172,7 +172,7 @@ func iterateTopay(c appengine.Context) chan LoggedTask {
 		for t := q.Run(c); ; {
 			var x LoggedTask
 			k, err := t.Next(&x)
-			if err == datastore.Done {
+			if err != nil {
 				break
 			}
 			x.Key = k
