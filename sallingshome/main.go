@@ -126,6 +126,9 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 			Task:      taskIds[i],
 			User:      su.Key,
 			Completed: now,
+			Who:       su.Name,
+			Name:      tasks[i].Name,
+			Amount:    tasks[i].Value,
 		})
 	}
 

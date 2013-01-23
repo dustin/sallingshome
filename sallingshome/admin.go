@@ -18,6 +18,9 @@ func init() {
 	http.HandleFunc("/admin/users/", adminListUsers)
 	http.HandleFunc("/admin/users/new", adminNewUser)
 
+	http.HandleFunc("/admin/topay/", adminListUnpaid)
+	http.HandleFunc("/admin/topay/update/", adminMarkPaid)
+
 	http.HandleFunc("/admin/", serveAdmin)
 }
 
@@ -156,6 +159,70 @@ func adminListUsers(w http.ResponseWriter, r *http.Request) {
 		map[string]interface{}{
 			"results": iterateUsers(appengine.NewContext(r)),
 		})
+}
+
+func iterateTopay(c appengine.Context) chan LoggedTask {
+	q := datastore.NewQuery("LoggedTask").
+		Filter("Paid = ", false).
+		Order("Completed")
+
+	ch := make(chan LoggedTask)
+	go func() {
+		defer close(ch)
+		for t := q.Run(c); ; {
+			var x LoggedTask
+			k, err := t.Next(&x)
+			if err == datastore.Done {
+				break
+			}
+			x.Key = k
+			ch <- x
+		}
+	}()
+
+	return ch
+}
+
+func adminListUnpaid(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	templates.ExecuteTemplate(w, "admin_topay.html",
+		map[string]interface{}{
+			"topay": iterateTopay(c),
+		})
+}
+
+func adminMarkPaid(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	r.ParseForm()
+	keys := make([]*datastore.Key, 0, len(r.Form["pay"]))
+	for _, s := range r.Form["pay"] {
+		k, err := datastore.DecodeKey(s)
+		if err != nil {
+			panic(err)
+		}
+		keys = append(keys, k)
+	}
+	tasks := make([]LoggedTask, len(keys))
+
+	err := datastore.GetMulti(c, keys, tasks)
+	if err != nil {
+		panic(err)
+	}
+
+	now := time.Now().UTC()
+	for i := range tasks {
+		tasks[i].Paid = true
+		tasks[i].PaidTime = now
+	}
+
+	_, err = datastore.PutMulti(c, keys, tasks)
+	if err != nil {
+		panic(err)
+	}
+
+	http.Redirect(w, r, "/admin/", 303)
 }
 
 func serveAdmin(w http.ResponseWriter, r *http.Request) {

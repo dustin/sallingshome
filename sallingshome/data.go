@@ -46,4 +46,11 @@ type LoggedTask struct {
 	Completed time.Time
 	PaidTime  time.Time
 	Paid      bool
+
+	// Copied from the task for ease of use
+	Who    string
+	Name   string
+	Amount int
+
+	Key *datastore.Key `datastore:"-"`
 }
