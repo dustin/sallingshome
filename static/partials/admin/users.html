@@ -1,0 +1,27 @@
+<h2>Users:</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr ng-repeat="u in users" class="disabled-{{u.disabled}}">
+      <td>
+        <input type="checkbox" ng-model="u.disabled" />
+        <a href="/admin/tasks/toggle?id={{u.Key}}">{{u.name}}</a>
+      </td>
+      <td>{{u.email}}</td>
+    </tr>
+  </tbody>
+
+</table>
+
+<form method="POST" action="/admin/users/new">
+  Name: <input type="text" name="name" /><br/>
+  Email: <input type="text" name="email" /><br/>
+  <input type="submit" />
+</form>

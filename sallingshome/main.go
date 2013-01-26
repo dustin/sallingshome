@@ -1,8 +1,10 @@
 package sallingshome
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -21,6 +23,7 @@ func init() {
 		panic("Couldn't parse templates.")
 	}
 	http.HandleFunc("/", serveHome)
+	http.HandleFunc("/api/currentuser/", currentUser)
 	http.HandleFunc("/complete", serveComplete)
 	http.HandleFunc("/logout", logoutRedirect)
 }
@@ -28,6 +31,12 @@ func init() {
 func logoutRedirect(w http.ResponseWriter, r *http.Request) {
 	url, _ := user.LogoutURL(appengine.NewContext(r), "/")
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+
+func currentUser(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	mustEncode(w, user.Current(c))
 }
 
 func iterateUserTasks(c appengine.Context, u User) chan Task {
@@ -77,6 +86,18 @@ func getUser(c appengine.Context, u *user.User) (rv User, err error) {
 	err = datastore.Get(c, k, &rv)
 	rv.Key = k
 	return
+}
+
+func mustEncode(w io.Writer, i interface{}) {
+	if headered, ok := w.(http.ResponseWriter); ok {
+		headered.Header().Set("Cache-Control", "no-cache")
+		headered.Header().Set("Content-type", "application/json")
+	}
+
+	e := json.NewEncoder(w)
+	if err := e.Encode(i); err != nil {
+		panic(err)
+	}
 }
 
 func serveComplete(w http.ResponseWriter, r *http.Request) {

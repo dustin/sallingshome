@@ -1,0 +1,30 @@
+<h2>Tasks Requiring Payment:</h2>
+
+<form method="POST" action="/admin/topay/update/">
+
+  <table>
+    <thead>
+      <tr>
+        <th>Pay</th>
+        <th>Who</th>
+        <th>What</th>
+        <th>Amount</th>
+        <th>When</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr ng-repeat="ob in topay">
+        <td><input type="checkbox" name="pay" value="{{ob.key}}" /></td>
+        <td>{{ob.who}}</td>
+        <td>{{ob.name}}</td>
+        <td style="text-align: right">{{ob.amount | money}}</td>
+        <td title="{{ob.completed_at}}">{{ob.completed_at | relDate}}</td>
+      </tr>
+    </tbody>
+
+  </table>
+
+  <input type="submit" value="Mark Paid" />
+
+</form>

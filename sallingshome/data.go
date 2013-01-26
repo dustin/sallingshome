@@ -14,7 +14,7 @@ type Task struct {
 	Assignee    string    `json:"assignee"`
 	Value       int       `json:"value"` // cents
 	Prev        time.Time `json:"prev"`
-	Next        time.Time `json:next"`
+	Next        time.Time `json:"next""`
 	Disabled    bool      `json:"disabled"`
 
 	Key *datastore.Key `datastore:"-"`
@@ -33,9 +33,9 @@ func (t *Task) updateTime() {
 }
 
 type User struct {
-	Name     string
-	Email    string
-	Disabled bool
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Disabled bool   `json:"disabled"`
 
 	Key *datastore.Key `datastore:"-"`
 }
@@ -43,14 +43,14 @@ type User struct {
 type LoggedTask struct {
 	Task      *datastore.Key
 	User      *datastore.Key
-	Completed time.Time
-	PaidTime  time.Time
-	Paid      bool
+	Completed time.Time `json:"completed_at"`
+	PaidTime  time.Time `json:"paid_at"`
+	Paid      bool      `json:"paid"`
 
 	// Copied from the task for ease of use
-	Who    string
-	Name   string
-	Amount int
+	Who    string `json:"who"`
+	Name   string `json:"name"`
+	Amount int    `json:"amount"`
 
-	Key *datastore.Key `datastore:"-"`
+	Key *datastore.Key `datastore:"-",json:"key"`
 }

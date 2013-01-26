@@ -1,0 +1,57 @@
+<h2>Current Tasks:</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Assignee</th>
+      <th>Repeat Type</th>
+      <th>Period</th>
+      <th>Value</th>
+      <th>Next</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr ng-repeat="t in tasks" class="disabled-{{t.disabled}}">
+      <td>
+        <input type="checkbox" ng-change="changedTask(t)" ng-model="t.disabled" />
+        <span ng-hide="t.editing" ng-click="t.editing = true" >{{t.name}}</span>
+        <input ng-show="t.editing" ng-change="changedTask(t)"
+               ng-model="t.name" size="60" />
+      </td>
+      <td>{{t.assignee}}</td>
+      <td>{{t.repeatType}}</td>
+
+      <td ng-click="t.editing = true" ng-hide="t.editing">{{t.period}}</td>
+      <td ng-show="t.editing"><input ng-change="changedTask(t)" ng-model="t.period" /></td>
+
+      <td style="text-align: right" ng-click="t.editing = true" ng-hide="t.editing">{{t.value | money}}</td>
+      <td style="text-align: right"
+          ng-show="t.editing"><input ng-change="changedTask(t)" ng-model="t.value" /></td>
+      <td title="{{t.next}}">{{t.next | relDate}}</td>
+    </tr>
+  </tbody>
+
+</table>
+
+Total value:  {{total | money}}
+
+<hr />
+
+<form method="POST" action="/admin/tasks/new">
+  Name: <input type="text" name="name" /><br/>
+  Assignee:
+  <select name="assignee">
+    <option value="">-Anyone-</option>
+    <option ng-repeat="u in users" value="{{u.email}}">{{u.name}} &lt;{{u.email}}&gt;</option>
+</option>
+</select>
+<br/>
+Repeat: <select name="rtype"><option value="Normal">Normal</option></select>
+<input type="text" name="period" /><br/>
+Value: <input type="text" name="value" /><br/>
+Description:<br/>
+<textarea name="description"></textarea>
+<input type="submit" />
+</form>

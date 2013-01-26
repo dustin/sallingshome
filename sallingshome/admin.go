@@ -10,39 +10,78 @@ import (
 	"appengine/user"
 )
 
-func init() {
-	http.HandleFunc("/admin/tasks/new", adminNewTask)
-	http.HandleFunc("/admin/tasks/toggle", adminToggleTask)
-	http.HandleFunc("/admin/tasks/", adminListTasks)
-
-	http.HandleFunc("/admin/users/", adminListUsers)
-	http.HandleFunc("/admin/users/new", adminNewUser)
-
-	http.HandleFunc("/admin/topay/", adminListUnpaid)
-	http.HandleFunc("/admin/topay/update/", adminMarkPaid)
-
-	http.HandleFunc("/admin/", serveAdmin)
+func RewriteURL(to string, h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = to
+		h.ServeHTTP(w, r)
+	})
 }
 
-func iterateTasks(c appengine.Context) chan Task {
-	ch := make(chan Task)
+func init() {
+	http.HandleFunc("/admin/users/new", adminNewUser)
 
+	http.HandleFunc("/api/admin/topay/", adminListUnpaid)
+	http.HandleFunc("/api/admin/topay/update/", adminMarkPaid) // TODO
+
+	http.HandleFunc("/admin/tasks/new", adminNewTask)
+	http.HandleFunc("/api/admin/tasks/update/", adminUpdateTask)
+	http.HandleFunc("/api/admin/tasks/toggle", adminToggleTask) // TODO
+	http.HandleFunc("/api/admin/tasks/", adminListTasks)
+
+	http.HandleFunc("/api/admin/users/", adminListUsers)
+
+	http.Handle("/admin/", RewriteURL("admin.html",
+		http.FileServer(http.Dir("static"))))
+}
+
+func asInt(s string) int {
+	x, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return x
+}
+
+func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	tid := r.FormValue("taskKey")
+
+	k, err := datastore.DecodeKey(tid)
+	if err != nil {
+		panic(err)
+	}
+
+	task := &Task{}
+	if err := datastore.Get(c, k, task); err != nil {
+		panic(err)
+	}
+
+	task.Name = r.FormValue("name")
+	task.Value = asInt(r.FormValue("value"))
+	task.Period = asInt(r.FormValue("period"))
+	task.Disabled = r.FormValue("disabled") == "true"
+
+	if _, err := datastore.Put(c, k, task); err != nil {
+		panic(err)
+	}
+}
+
+func adminListTasks(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
 	q := datastore.NewQuery("Task").Order("Disabled").Order("Name")
 
-	go func() {
-		defer close(ch)
-		for t := q.Run(c); ; {
-			var x Task
-			k, err := t.Next(&x)
-			if err != nil {
-				break
-			}
-			x.Key = k
-			ch <- x
+	results := []Task{}
+	for t := q.Run(c); ; {
+		var x Task
+		k, err := t.Next(&x)
+		if err != nil {
+			break
 		}
-	}()
-
-	return ch
+		x.Key = k
+		results = append(results, x)
+	}
+	mustEncode(w, results)
 }
 
 func adminToggleTask(w http.ResponseWriter, r *http.Request) {
@@ -103,36 +142,6 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/tasks/", 307)
 }
 
-func adminListTasks(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	templates.ExecuteTemplate(w, "admin_tasks.html",
-		map[string]interface{}{
-			"results":   iterateTasks(c),
-			"assignees": iterateUsers(c),
-		})
-}
-
-func iterateUsers(c appengine.Context) chan User {
-	ch := make(chan User)
-
-	q := datastore.NewQuery("User").Order("Name")
-
-	go func() {
-		defer close(ch)
-		for t := q.Run(c); ; {
-			var x User
-			k, err := t.Next(&x)
-			if err != nil {
-				break
-			}
-			x.Key = k
-			ch <- x
-		}
-	}()
-
-	return ch
-}
-
 func adminNewUser(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
@@ -155,41 +164,44 @@ func adminNewUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func adminListUsers(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "admin_users.html",
-		map[string]interface{}{
-			"results": iterateUsers(appengine.NewContext(r)),
-		})
-}
+	c := appengine.NewContext(r)
 
-func iterateTopay(c appengine.Context) chan LoggedTask {
-	q := datastore.NewQuery("LoggedTask").
-		Filter("Paid = ", false).
-		Order("Completed")
+	q := datastore.NewQuery("User").Order("Name")
 
-	ch := make(chan LoggedTask)
-	go func() {
-		defer close(ch)
-		for t := q.Run(c); ; {
-			var x LoggedTask
-			k, err := t.Next(&x)
-			if err != nil {
-				break
-			}
-			x.Key = k
-			ch <- x
+	results := []User{}
+	for t := q.Run(c); ; {
+		var x User
+		k, err := t.Next(&x)
+		if err != nil {
+			break
 		}
-	}()
+		x.Key = k
+		results = append(results, x)
+	}
 
-	return ch
+	mustEncode(w, results)
 }
 
 func adminListUnpaid(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
-	templates.ExecuteTemplate(w, "admin_topay.html",
-		map[string]interface{}{
-			"topay": iterateTopay(c),
-		})
+	results := []LoggedTask{}
+
+	q := datastore.NewQuery("LoggedTask").
+		Filter("Paid = ", false).
+		Order("Completed")
+
+	for t := q.Run(c); ; {
+		var x LoggedTask
+		k, err := t.Next(&x)
+		if err != nil {
+			break
+		}
+		x.Key = k
+		results = append(results, x)
+	}
+
+	mustEncode(w, results)
 }
 
 func adminMarkPaid(w http.ResponseWriter, r *http.Request) {
