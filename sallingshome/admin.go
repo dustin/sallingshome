@@ -10,13 +10,6 @@ import (
 	"appengine/user"
 )
 
-func RewriteURL(to string, h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = to
-		h.ServeHTTP(w, r)
-	})
-}
-
 func init() {
 	http.HandleFunc("/admin/users/new", adminNewUser)
 
@@ -30,8 +23,14 @@ func init() {
 
 	http.HandleFunc("/api/admin/users/", adminListUsers)
 
-	http.Handle("/admin/", RewriteURL("admin.html",
-		http.FileServer(http.Dir("static"))))
+	http.HandleFunc("/admin/", serveStaticAdmin)
+}
+
+func serveStaticAdmin(w http.ResponseWriter, r *http.Request) {
+	err := templates.ExecuteTemplate(w, "admin.html", nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func asInt(s string) int {
