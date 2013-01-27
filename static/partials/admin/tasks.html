@@ -1,39 +1,45 @@
 <h2>Current Tasks:</h2>
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Assignee</th>
-      <th>Repeat Type</th>
-      <th>Period</th>
-      <th>Value</th>
-      <th>Next</th>
-    </tr>
-  </thead>
+<div ng-repeat="t in tasks" class="taskitem disabled-{{t.disable}}">
+  <h3>
+    <input type="checkbox" ng-model="t.disabled" />
+    <span ng-hide="t.editing" ng-click="t.editing = true" >{{t.name}}</span>
+    <input ng-show="t.editing" ng-model="t.name" size="60" />
+  </h3>
 
-  <tbody>
-    <tr ng-repeat="t in tasks" class="disabled-{{t.disabled}}">
-      <td>
-        <input type="checkbox" ng-change="changedTask(t)" ng-model="t.disabled" />
-        <span ng-hide="t.editing" ng-click="t.editing = true" >{{t.name}}</span>
-        <input ng-show="t.editing" ng-change="changedTask(t)"
-               ng-model="t.name" size="60" />
-      </td>
-      <td>{{t.assignee}}</td>
-      <td>{{t.repeatType}}</td>
+  <h4>Assignment</h4>
+  <p>Assigned to
+    <span ng-show="t.assignee">{{t.assignee}},</span>
+    <em ng-hide="t.assignee">anybody,</em>
+    repeat type {{t.repeatType}}
+  </p>
 
-      <td ng-click="t.editing = true" ng-hide="t.editing">{{t.period}}</td>
-      <td ng-show="t.editing"><input ng-change="changedTask(t)" ng-model="t.period" /></td>
+  <h4>Repeat</h4>
+  <p>
+    Repeats every
+    <span ng-click="t.editing = true" ng-hide="t.editing">{{t.period}}</span>
+    <span ng-show="t.editing"><input ng-model="t.period" /></span>
+    days.  Next up:  <span title="{{t.next}}">{{t.next | relDate}}</span>
+  </p>
 
-      <td style="text-align: right" ng-click="t.editing = true" ng-hide="t.editing">{{t.value | money}}</td>
-      <td style="text-align: right"
-          ng-show="t.editing"><input ng-change="changedTask(t)" ng-model="t.value" /></td>
-      <td title="{{t.next}}">{{t.next | relDate}}</td>
-    </tr>
-  </tbody>
+  <h4>Value</h4>
+  <p>
+    <span style="text-align: right" ng-click="t.editing = true" ng-hide="t.editing">{{t.value | money}}</span>
+    <span style="text-align: right"
+          ng-show="t.editing"><input ng-model="t.value" /></span>
+  </p>
 
-</table>
+  <h4>Description</h4>
+
+  <p ng-hide="t.editing" ng-click="t.editing = true">{{t.description}}</p>
+  <textarea ng-show="t.editing" ng-model="t.description"></textarea>
+
+  <button ng-show="t.editing" ng-click="changedTask(t)">Save</button>
+  <button ng-show="t.editing" ng-click="t.editing = false">Cancel</button>
+
+</div>
+
+<hr />
 
 Total value:  {{total | money}}
 

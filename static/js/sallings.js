@@ -64,21 +64,20 @@ function AdminTasksCtrl($scope, $http) {
                                 }, 0);
     };
 
-    $scope.changedTask = _.debounce(function(t) {
+    $scope.changedTask = function(t) {
         console.log("Changed", t);
-        $scope.$apply(function() {
-            $http.post("/api/admin/tasks/update/",
-                       "taskKey=" + encodeURIComponent(t.Key) +
-                       "&disabled=" + t.disabled +
-                       "&name=" + encodeURIComponent(t.name) +
-                       "&period=" + t.period + "&value=" + t.value,
-                       {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
-                success(function(e) {
-                    t.editing = false;
-                });
-            calcTotal();
-        });
-    }, 3000);
+        $http.post("/api/admin/tasks/update/",
+                   "taskKey=" + encodeURIComponent(t.Key) +
+                   "&disabled=" + t.disabled +
+                   "&name=" + encodeURIComponent(t.name) +
+                   "&description=" + encodeURIComponent(t.description) +
+                   "&period=" + t.period + "&value=" + t.value,
+                   {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
+            success(function(e) {
+                t.editing = false;
+            });
+        calcTotal();
+    };
 
     $scope.$watch('tasks', calcTotal);
 

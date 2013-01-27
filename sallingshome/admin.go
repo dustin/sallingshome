@@ -57,6 +57,7 @@ func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task.Name = r.FormValue("name")
+	task.Description = r.FormValue("description")
 	task.Value = asInt(r.FormValue("value"))
 	task.Period = asInt(r.FormValue("period"))
 	task.Disabled = r.FormValue("disabled") == "true"
