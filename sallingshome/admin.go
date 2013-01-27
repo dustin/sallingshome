@@ -19,7 +19,6 @@ func init() {
 
 	http.HandleFunc("/admin/tasks/new", adminNewTask)
 	http.HandleFunc("/api/admin/tasks/update/", adminUpdateTask)
-	http.HandleFunc("/api/admin/tasks/toggle", adminToggleTask) // TODO
 	http.HandleFunc("/api/admin/tasks/", adminListTasks)
 
 	http.HandleFunc("/api/admin/users/", adminListUsers)
@@ -82,30 +81,6 @@ func adminListTasks(w http.ResponseWriter, r *http.Request) {
 		results = append(results, x)
 	}
 	mustEncode(w, results)
-}
-
-func adminToggleTask(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-
-	k, err := datastore.DecodeKey(r.FormValue("id"))
-	if err != nil {
-		panic(err)
-	}
-
-	c.Infof("Toggling object with key %v", k)
-
-	task := &Task{}
-	if err := datastore.Get(c, k, task); err != nil {
-		panic(err)
-	}
-
-	task.Disabled = !task.Disabled
-
-	if _, err := datastore.Put(c, k, task); err != nil {
-		panic(err)
-	}
-
-	http.Redirect(w, r, "/admin/tasks/", 307)
 }
 
 func adminNewTask(w http.ResponseWriter, r *http.Request) {
