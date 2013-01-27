@@ -15,7 +15,8 @@
 
     <tbody>
       <tr ng-repeat="ob in topay">
-        <td><input type="checkbox" name="pay" value="{{ob.key}}" /></td>
+        <td><input type="checkbox" name="pay" value="{{ob.Key}}"
+                   ng-model="ob.paying" ng-change="updatePaying()" /></td>
         <td>{{ob.who}}</td>
         <td>{{ob.name}}</td>
         <td style="text-align: right">{{ob.amount | money}}</td>
@@ -24,6 +25,8 @@
     </tbody>
 
   </table>
+
+  <p>Total:  <span>{{total | money}}</span></p>
 
   <input type="submit" value="Mark Paid" />
 

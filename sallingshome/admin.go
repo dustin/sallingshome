@@ -13,8 +13,9 @@ import (
 func init() {
 	http.HandleFunc("/admin/users/new", adminNewUser)
 
+	http.HandleFunc("/admin/topay/update/", adminMarkPaid)
+
 	http.HandleFunc("/api/admin/topay/", adminListUnpaid)
-	http.HandleFunc("/api/admin/topay/update/", adminMarkPaid) // TODO
 
 	http.HandleFunc("/admin/tasks/new", adminNewTask)
 	http.HandleFunc("/api/admin/tasks/update/", adminUpdateTask)

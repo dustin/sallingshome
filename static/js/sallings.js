@@ -40,8 +40,18 @@ function AdminCtrl($scope, $http) {
 
 
 function AdminToPayCtrl($scope, $http) {
+    $scope.total = 0;
+
+    $scope.updatePaying = function(ob) {
+        $scope.total = _.reduce($scope.topay,
+                                function(a, t) {
+                                    return a + (t.paying ? t.amount : 0);
+                                }, 0);
+    };
+
     $http.get("/api/admin/topay/").success(function(data) {
         $scope.topay = data;
+        _.each($scope.topay, function(e) {e.paying = false;});
     });
 }
 
