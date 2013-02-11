@@ -84,7 +84,16 @@ function AdminTasksCtrl($scope, $http) {
             "taskKey=" + encodeURIComponent(t.Key),
             {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
             success(function(e) {
-                t.next = e;
+                t.next = e.next;
+            });
+    };
+
+    $scope.makeUnavailable = function(t) {
+        $http.post("/api/admin/tasks/makeUnavailable/",
+            "taskKey=" + encodeURIComponent(t.Key),
+            {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
+            success(function(e) {
+                t.next = e.next;
             });
     };
 
