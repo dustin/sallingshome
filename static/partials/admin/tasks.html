@@ -37,6 +37,9 @@
   <button ng-show="t.editing" ng-click="changedTask(t)">Save</button>
   <button ng-show="t.editing" ng-click="t.editing = false">Cancel</button>
 
+  <ul>
+    <li><a ng-click="makeAvailable(t)">Make Available</a></li>
+  </ul>
   <hr />
 </div>
 

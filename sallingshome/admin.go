@@ -19,6 +19,7 @@ func init() {
 
 	http.HandleFunc("/admin/tasks/new", adminNewTask)
 	http.HandleFunc("/api/admin/tasks/update/", adminUpdateTask)
+	http.HandleFunc("/api/admin/tasks/makeAvailable/", adminTaskMakeAvailable)
 	http.HandleFunc("/api/admin/tasks/", adminListTasks)
 
 	http.HandleFunc("/api/admin/users/", adminListUsers)
@@ -65,6 +66,30 @@ func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
 	if _, err := datastore.Put(c, k, task); err != nil {
 		panic(err)
 	}
+}
+
+func adminTaskMakeAvailable(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	tid := r.FormValue("taskKey")
+
+	k, err := datastore.DecodeKey(tid)
+	if err != nil {
+		panic(err)
+	}
+
+	task := &Task{}
+	if err := datastore.Get(c, k, task); err != nil {
+		panic(err)
+	}
+
+	task.Next = time.Now()
+
+	if _, err := datastore.Put(c, k, task); err != nil {
+		panic(err)
+	}
+
+	mustEncode(w, task.Next)
 }
 
 func adminListTasks(w http.ResponseWriter, r *http.Request) {

@@ -79,6 +79,15 @@ function AdminTasksCtrl($scope, $http) {
         calcTotal();
     };
 
+    $scope.makeAvailable = function(t) {
+        $http.post("/api/admin/tasks/makeAvailable/",
+            "taskKey=" + encodeURIComponent(t.Key),
+            {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
+            success(function(e) {
+                t.next = e;
+            });
+    };
+
     $scope.$watch('tasks', calcTotal);
 
     $http.get("/api/admin/tasks/").success(function(data) {
