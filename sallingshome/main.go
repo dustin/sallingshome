@@ -130,27 +130,27 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	now := time.Now()
-	storeKeys := make([]*datastore.Key, len(taskIds))
+	storeKeys := make([]*datastore.Key, 0, 2*len(taskIds))
 	vals := []interface{}{}
-	copy(storeKeys, taskIds)
 	for i := range tasks {
-		tasks[i].updateTime()
-		tasks[i].Prev = now
-		storeKeys = append(storeKeys,
-			datastore.NewIncompleteKey(c, "LoggedTask", nil))
+		if tasks[i].Next.Before(now) {
+			tasks[i].updateTime()
+			tasks[i].Prev = now
+			storeKeys = append(storeKeys, taskIds[i])
 
-		vals = append(vals, &tasks[i])
-	}
+			vals = append(vals, &tasks[i])
 
-	for i := range tasks {
-		vals = append(vals, &LoggedTask{
-			Task:      taskIds[i],
-			User:      su.Key,
-			Completed: now,
-			Who:       su.Name,
-			Name:      tasks[i].Name,
-			Amount:    tasks[i].Value,
-		})
+			storeKeys = append(storeKeys,
+				datastore.NewIncompleteKey(c, "LoggedTask", nil))
+			vals = append(vals, &LoggedTask{
+				Task:      taskIds[i],
+				User:      su.Key,
+				Completed: now,
+				Who:       su.Name,
+				Name:      tasks[i].Name,
+				Amount:    tasks[i].Value,
+			})
+		}
 	}
 
 	c.Infof("Putting %#v in %v", vals, storeKeys)
