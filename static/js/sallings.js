@@ -6,7 +6,7 @@ angular.module('sallingshome', []).
     }).
     filter('agecss', function() {
         return function(dstr) {
-            return moment(dstr).diff(moment(), 'days') < 14 ? 'old' : '';
+            return moment(dstr).diff(moment(), 'days') < -14 ? 'old' : '';
         };
     }).
     filter('calDate', function() {
