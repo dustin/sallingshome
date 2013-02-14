@@ -51,8 +51,21 @@ function AdminToPayCtrl($scope, $http) {
 
     $http.get("/api/admin/topay/").success(function(data) {
         $scope.topay = data;
-        _.each($scope.topay, function(e) {e.paying = false;});
+        var people = {};
+        _.each($scope.topay, function(e) {
+            e.paying = false;
+            people[e.who] = 1;
+        });
+        $scope.people = _.keys(people);
     });
+
+    $scope.markPerson = function(name) {
+        _.each($scope.topay, function(e) {
+            console.log("checking", e.who, "against", name);
+            e.paying = e.who === name;
+        });
+        $scope.updatePaying();
+    };
 }
 
 function AdminTasksCtrl($scope, $http) {

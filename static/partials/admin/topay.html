@@ -26,6 +26,11 @@
 
   </table>
 
+  <a href="#" ng-click="markPerson('')">Clear</a>
+  <span ng-repeat="p in people">
+    | <a href="#" ng-click="markPerson(p)">{{p}}</a>
+  </span>
+
   <p>Total:  <span>{{total | money}}</span></p>
 
   <input type="submit" value="Mark Paid" />
