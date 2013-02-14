@@ -1,7 +1,7 @@
 <h2>Current Tasks:</h2>
 
 <div ng-repeat="t in tasks" class="taskitem disabled-{{t.disable}}">
-  <h3>
+  <h3 class='{{t.next | agecss}}'>
     <input type="checkbox" ng-model="t.disabled" />
     <span ng-hide="t.editing" ng-click="t.editing = true" >{{t.name}}</span>
     <input ng-show="t.editing" ng-model="t.name" size="60" />

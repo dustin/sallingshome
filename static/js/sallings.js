@@ -4,6 +4,11 @@ angular.module('sallingshome', []).
             return moment(dstr).fromNow();
         };
     }).
+    filter('agecss', function() {
+        return function(dstr) {
+            return moment(dstr).diff(moment(), 'days') < 14 ? 'old' : '';
+        };
+    }).
     filter('calDate', function() {
         return function(dstr) {
             return moment(dstr).calendar();

@@ -9,9 +9,9 @@
 
     <h2>Your Tasks:</h2>
     <form method="POST" action="/complete">
-      <ul>
+      <ul class="tasks">
         {{ range .tasks }}
-        <li>
+        <li class="{{.Prev | agecss}}">
           <label>
             <input type="checkbox" name="task"
                    value="{{.Key.Encode}}" /> {{.Name}}

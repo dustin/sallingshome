@@ -18,7 +18,14 @@ var templates *template.Template
 
 func init() {
 	var err error
-	templates, err = template.ParseGlob(fmt.Sprintf("templates/%c.html", '*'))
+	templates, err = template.New("").Funcs(map[string]interface{}{
+		"agecss": func(t time.Time) string {
+			if t.Before(time.Now().Add(time.Hour * -24 * 14)) {
+				return "old"
+			}
+			return ""
+		},
+	}).ParseGlob(fmt.Sprintf("templates/%c.html", '*'))
 	if err != nil {
 		panic("Couldn't parse templates.")
 	}
