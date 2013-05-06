@@ -21,6 +21,7 @@ func init() {
 	http.HandleFunc("/api/admin/tasks/update/", adminUpdateTask)
 	http.HandleFunc("/api/admin/tasks/makeAvailable/", adminTaskMakeAvailable)
 	http.HandleFunc("/api/admin/tasks/makeUnavailable/", adminTaskMakeUnavailable)
+	http.HandleFunc("/api/admin/tasks/delete/", adminDeleteTask)
 	http.HandleFunc("/api/admin/tasks/", adminListTasks)
 
 	http.HandleFunc("/api/admin/users/", adminListUsers)
@@ -115,6 +116,23 @@ func adminTaskMakeUnavailable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mustEncode(w, map[string]interface{}{"next": task.Next})
+}
+
+func adminDeleteTask(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	tid := r.FormValue("taskKey")
+
+	k, err := datastore.DecodeKey(tid)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := datastore.Delete(c, k); err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(204)
 }
 
 func adminListTasks(w http.ResponseWriter, r *http.Request) {

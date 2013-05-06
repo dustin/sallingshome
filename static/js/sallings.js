@@ -115,6 +115,15 @@ function AdminTasksCtrl($scope, $http) {
             });
     };
 
+    $scope.deleteTask = function(t) {
+        $http.post("/api/admin/tasks/delete/",
+            "taskKey=" + encodeURIComponent(t.Key),
+            {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
+            success(function(e) {
+                $scope.tasks = _.without($scope.tasks, t);
+            });
+    };
+
     $scope.$watch('tasks', calcTotal);
 
     $http.get("/api/admin/tasks/").success(function(data) {
