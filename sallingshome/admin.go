@@ -64,6 +64,7 @@ func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
 	task.Value = asInt(r.FormValue("value"))
 	task.Period = asInt(r.FormValue("period"))
 	task.Disabled = r.FormValue("disabled") == "true"
+	task.Assignee = r.FormValue("assignee")
 
 	if _, err := datastore.Put(c, k, task); err != nil {
 		panic(err)

@@ -89,6 +89,7 @@ function AdminTasksCtrl($scope, $http) {
                    "&disabled=" + t.disabled +
                    "&name=" + encodeURIComponent(t.name) +
                    "&description=" + encodeURIComponent(t.description) +
+                   "&assignee=" + encodeURIComponent(t.assignee) +
                    "&period=" + t.period + "&value=" + t.value,
                    {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
             success(function(e) {

@@ -8,9 +8,13 @@
   </h3>
 
   <h4>Assignment</h4>
-  <p>Assigned to
-    <span ng-show="t.assignee">{{t.assignee}},</span>
+  <p ng-hide="t.editing">Assigned to
+    <span ng-click="t.editing = true" ng-show="t.assignee">{{t.assignee}},</span>
     <em ng-hide="t.assignee">anybody,</em>
+    repeat type {{t.repeatType}}
+  </p>
+  <p ng-show="t.editing">Assigned to
+    <input ng-model="t.assignee" />
     repeat type {{t.repeatType}}
   </p>
 
