@@ -21,6 +21,7 @@ func init() {
 	http.HandleFunc("/api/admin/tasks/update/", adminUpdateTask)
 	http.HandleFunc("/api/admin/tasks/makeAvailable/", adminTaskMakeAvailable)
 	http.HandleFunc("/api/admin/tasks/makeUnavailable/", adminTaskMakeUnavailable)
+	http.HandleFunc("/api/admin/tasks/markFor/", adminMarkTaskFor)
 	http.HandleFunc("/api/admin/tasks/delete/", adminDeleteTask)
 	http.HandleFunc("/api/admin/tasks/", adminListTasks)
 
@@ -42,6 +43,53 @@ func asInt(s string) int {
 		panic(err)
 	}
 	return x
+}
+
+func adminMarkTaskFor(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	uu := &user.User{Email: r.FormValue("email")}
+	u, err := getUser(c, uu)
+	if err != nil {
+		panic(err)
+	}
+	c.Infof("Found user: %v", u)
+
+	tid := r.FormValue("taskKey")
+
+	k, err := datastore.DecodeKey(tid)
+	if err != nil {
+		panic(err)
+	}
+
+	task := &Task{}
+	if err := datastore.Get(c, k, task); err != nil {
+		panic(err)
+	}
+
+	c.Infof("Found task: %v", task)
+
+	task.updateTime()
+
+	if _, err := datastore.Put(c, k, task); err != nil {
+		panic(err)
+	}
+
+	c.Infof("Updated task: %v", task)
+
+	// log done
+	lk := datastore.NewIncompleteKey(c, "LoggedTask", nil)
+	_, err = datastore.Put(c, lk, &LoggedTask{
+		Task: k, User: u.Key, Completed: time.Now(), Who: u.Name,
+		Name: task.Name, Amount: task.Value,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	c.Infof("Added logged task:  %v", lk)
+
+	mustEncode(w, map[string]interface{}{"next": task.Next})
 }
 
 func adminUpdateTask(w http.ResponseWriter, r *http.Request) {

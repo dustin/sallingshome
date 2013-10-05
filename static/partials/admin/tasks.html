@@ -44,6 +44,13 @@
   <ul>
     <li><a ng-click="makeAvailable(t)">Make Available</a></li>
     <li><a ng-click="makeUnavailable(t)">Make Unavailable</a></li>
+    <li>
+      <select name="worker" ng-model="t.finished_by">
+        <option value="">-Anyone-</option>
+        <option ng-repeat="u in users" value="{{u.email}}">{{u.name}} &lt;{{u.email}}&gt;</option>
+      </select>
+      <a ng-click="markFor(t)">Mark Done</a>
+    </li>
     <li><a ng-click="deleteTask(t)">DELETE</a></li>
   </ul>
   <hr />

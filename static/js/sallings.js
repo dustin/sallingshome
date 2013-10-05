@@ -98,6 +98,16 @@ function AdminTasksCtrl($scope, $http) {
         calcTotal();
     };
 
+    $scope.markFor = function(t) {
+        console.log("Marking", t);
+        $http.post("/api/admin/tasks/markFor/",
+            "taskKey=" + encodeURIComponent(t.Key) + "&email=" + encodeURIComponent(t.finished_by),
+            {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
+            success(function(e) {
+                t.next = e.next;
+            });
+    };
+
     $scope.makeAvailable = function(t) {
         $http.post("/api/admin/tasks/makeAvailable/",
             "taskKey=" + encodeURIComponent(t.Key),
