@@ -53,11 +53,8 @@ func adminMarkTaskFor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	c.Infof("Found user: %v", u)
 
-	tid := r.FormValue("taskKey")
-
-	k, err := datastore.DecodeKey(tid)
+	k, err := datastore.DecodeKey(r.FormValue("taskKey"))
 	if err != nil {
 		panic(err)
 	}
@@ -67,15 +64,11 @@ func adminMarkTaskFor(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	c.Infof("Found task: %v", task)
-
 	task.updateTime()
 
 	if _, err := datastore.Put(c, k, task); err != nil {
 		panic(err)
 	}
-
-	c.Infof("Updated task: %v", task)
 
 	// log done
 	lk := datastore.NewIncompleteKey(c, "LoggedTask", nil)
@@ -87,7 +80,7 @@ func adminMarkTaskFor(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	c.Infof("Added logged task:  %v", lk)
+	c.Infof("Administratively logged task %q for %q", task.Name, u.Name)
 
 	mustEncode(w, map[string]interface{}{"next": task.Next})
 }
