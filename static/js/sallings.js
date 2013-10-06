@@ -6,7 +6,12 @@ angular.module('sallingshome', []).
     }).
     filter('agecss', function() {
         return function(dstr) {
-            return moment(dstr).diff(moment(), 'days') < -14 ? 'old' : '';
+            if (moment(dstr).diff(moment(), 'days') < -14) {
+                return 'old'
+            } else if (moment(dstr).diff(moment()) > 0) {
+                return 'unavailable';
+            }
+            return '';
         };
     }).
     filter('calDate', function() {
