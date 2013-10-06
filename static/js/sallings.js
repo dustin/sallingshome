@@ -35,6 +35,8 @@ angular.module('sallingshome', []).
                                            controller: 'AdminToPayCtrl'}).
                     when('/admin/tasks/', {templateUrl: '/static/partials/admin/tasks.html',
                                            controller: 'AdminTasksCtrl'}).
+                    when('/admin/tasks/due/', {templateUrl: '/static/partials/admin/due.html',
+                                               controller: 'AdminTasksCtrl'}).
                     when('/admin/users/', {templateUrl: '/static/partials/admin/users.html',
                                            controller: 'AdminUsersCtrl'}).
                     otherwise({redirectTo: '/admin/'});
@@ -144,6 +146,9 @@ function AdminTasksCtrl($scope, $http) {
 
     $http.get("/api/admin/tasks/").success(function(data) {
         $scope.tasks = data;
+        $scope.available = _.filter(data, function(t) {
+            return moment(t.next).diff(moment()) < 0;
+        });
 
     });
     $http.get("/api/admin/users/").success(function(data) {
