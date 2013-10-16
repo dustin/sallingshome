@@ -1,23 +1,27 @@
 <h2>Due Tasks:</h2>
 
 <div ng-repeat="t in available" class="taskitem">
-  <h3 class='{{t.next | agecss}}'>{{t.name}}</h3>
+  <h3 class='{{t.next | agecss}}'>{{t.name}}
+    <span class="lastRun print-only">(last run {{t.prev | relDate}})</span>
+  </h3>
 
-  <h4>Assignment</h4>
-  <p>Assigned to
-    <span ng-show="t.assignee">{{t.assignee}},</span>
-    <em ng-hide="t.assignee">anybody,</em>
-    repeat type {{t.repeatType}}
-  </p>
+  <div class="screen-only">
+    <h4>Assignment</h4>
+    <p>Assigned to
+      <span ng-show="t.assignee">{{t.assignee}},</span>
+      <em ng-hide="t.assignee">anybody,</em>
+      repeat type {{t.repeatType}}
+    </p>
 
-  <h4>Repeat</h4>
-  <p>
-    Repeats every {{t.period}}.
-    Last run:  <span title="{{t.prev}}">{{t.prev | relDate}}</span>.
-    Next up:  <span title="{{t.next}}">{{t.next | relDate}}</span>
-  </p>
+    <h4>Repeat</h4>
+    <p>
+      Repeats every {{t.period}}.
+      Last run:  <span title="{{t.prev}}">{{t.prev | relDate}}</span>.
+      Next up:  <span title="{{t.next}}">{{t.next | relDate}}</span>
+    </p>
+  </div>
 
-  <h4>Description</h4>
+  <h4 class="screen-only">Description</h4>
 
   <p>{{t.description}}</p>
 
