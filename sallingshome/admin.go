@@ -64,6 +64,7 @@ func adminMarkTaskFor(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	task.Prev = time.Now()
 	task.updateTime()
 
 	if _, err := datastore.Put(c, k, task); err != nil {
