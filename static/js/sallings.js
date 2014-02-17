@@ -112,6 +112,7 @@ function AdminTasksCtrl($scope, $http) {
             {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
             success(function(e) {
                 t.next = e.next;
+                t.marked = true;
             });
     };
 
@@ -121,6 +122,7 @@ function AdminTasksCtrl($scope, $http) {
             {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
             success(function(e) {
                 t.next = e.next;
+                t.marked = false;
             });
     };
 

@@ -28,7 +28,7 @@
   <ul class="screen-only">
     <li><a ng-click="makeAvailable(t)">Make Available</a></li>
     <li><a ng-click="makeUnavailable(t)">Make Unavailable</a></li>
-    <li>
+    <li ng-hide="t.marked">
       <select name="worker" ng-model="t.finished_by">
         <option value="">-Anyone-</option>
         <option ng-repeat="u in users" value="{{u.email}}">{{u.name}} &lt;{{u.email}}&gt;</option>
