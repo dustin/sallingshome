@@ -294,6 +294,8 @@ func adminListUnpaid(w http.ResponseWriter, r *http.Request) {
 func adminMarkPaid(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
+	action := r.FormValue("action")
+
 	r.ParseForm()
 	keys := make([]*datastore.Key, 0, len(r.Form["pay"]))
 	for _, s := range r.Form["pay"] {
@@ -303,22 +305,32 @@ func adminMarkPaid(w http.ResponseWriter, r *http.Request) {
 		}
 		keys = append(keys, k)
 	}
-	tasks := make([]LoggedTask, len(keys))
 
-	err := datastore.GetMulti(c, keys, tasks)
-	if err != nil {
-		panic(err)
-	}
+	if action == "Mark Paid" {
+		tasks := make([]LoggedTask, len(keys))
 
-	now := time.Now().UTC()
-	for i := range tasks {
-		tasks[i].Paid = true
-		tasks[i].PaidTime = now
-	}
+		err := datastore.GetMulti(c, keys, tasks)
+		if err != nil {
+			panic(err)
+		}
 
-	_, err = datastore.PutMulti(c, keys, tasks)
-	if err != nil {
-		panic(err)
+		now := time.Now().UTC()
+		for i := range tasks {
+			tasks[i].Paid = true
+			tasks[i].PaidTime = now
+		}
+
+		_, err = datastore.PutMulti(c, keys, tasks)
+		if err != nil {
+			panic(err)
+		}
+	} else if action == "Delete" {
+		err := datastore.DeleteMulti(c, keys)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		panic("Unhandled action: " + action)
 	}
 
 	http.Redirect(w, r, "/admin/", 303)
