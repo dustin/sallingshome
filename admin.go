@@ -378,11 +378,16 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	buf := &bytes.Buffer{}
-	templates.ExecuteTemplate(buf, "mail.txt",
+	err := templates.ExecuteTemplate(buf, "mail.txt",
 		struct {
 			Total  int
 			People map[string]mailTask
 		}{total, people})
+	if err != nil {
+		c.Errorf("Template error: %v", err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
 	msg := &mail.Message{
 		Sender:  "Dustin Sallings <dsallings@gmail.com>",
