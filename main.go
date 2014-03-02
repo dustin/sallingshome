@@ -25,9 +25,9 @@ func init() {
 			}
 			return ""
 		},
-	}).ParseGlob(fmt.Sprintf("templates/%c.html", '*'))
+	}).ParseGlob("templates/*")
 	if err != nil {
-		panic("Couldn't parse templates.")
+		panic("Couldn't parse templates: " + err.Error())
 	}
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/api/currentuser/", currentUser)
