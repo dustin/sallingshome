@@ -1,0 +1,5 @@
+cron:
+- description: payment thing
+  url: /admin/cron/topay/
+  schedule: every sunday 21:00
+  timezone: US/Pacific

@@ -25,6 +25,11 @@ func init() {
 			}
 			return ""
 		},
+		"money": func(i int) string {
+			dollars := i / 100
+			cents := i % 100
+			return fmt.Sprintf("$%d.%02d", dollars, cents)
+		},
 	}).ParseGlob("templates/*")
 	if err != nil {
 		panic("Couldn't parse templates: " + err.Error())

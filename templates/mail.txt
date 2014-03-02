@@ -1,0 +1,8 @@
+Total due:  {{ .Total | money }}
+
+{{ range $name, $stuff := .People }}
+For {{ $name }} - {{ $stuff.Amount | money }}:
+{{ range $thing := $stuff.Tasks }}
+* {{ $thing.Name }} - {{ $thing.Amount | money }}{{ end }}
+
+{{ end }}

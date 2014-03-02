@@ -1,12 +1,14 @@
 package sallingshome
 
 import (
+	"bytes"
 	"net/http"
 	"strconv"
 	"time"
 
 	"appengine"
 	"appengine/datastore"
+	"appengine/mail"
 	"appengine/user"
 )
 
@@ -16,6 +18,7 @@ func init() {
 	http.HandleFunc("/admin/topay/update/", adminMarkPaid)
 
 	http.HandleFunc("/api/admin/topay/", adminListUnpaid)
+	http.HandleFunc("/admin/cron/topay/", adminMailUnpaid)
 
 	http.HandleFunc("/admin/tasks/new", adminNewTask)
 	http.HandleFunc("/api/admin/tasks/update/", adminUpdateTask)
@@ -344,4 +347,54 @@ func serveAdmin(w http.ResponseWriter, r *http.Request) {
 	c.Infof("Got admin request from %v", u)
 
 	templates.ExecuteTemplate(w, "admin.html", u)
+}
+
+type mailTask struct {
+	Amount int
+	Tasks  []LoggedTask
+}
+
+func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+
+	total := 0
+	people := map[string]mailTask{}
+
+	q := datastore.NewQuery("LoggedTask").
+		Filter("Paid = ", false).
+		Order("Completed")
+
+	for t := q.Run(c); ; {
+		var x LoggedTask
+		_, err := t.Next(&x)
+		if err != nil {
+			break
+		}
+		total += x.Amount
+		p := people[x.Who]
+		p.Amount += x.Amount
+		p.Tasks = append(p.Tasks, x)
+		people[x.Who] = p
+	}
+
+	buf := &bytes.Buffer{}
+	templates.ExecuteTemplate(buf, "mail.txt",
+		struct {
+			Total  int
+			People map[string]mailTask
+		}{total, people})
+
+	msg := &mail.Message{
+		Sender:  "Dustin Sallings <dsallings@gmail.com>",
+		To:      []string{"dustin@sallings.org"},
+		Subject: "Payment Report",
+		Body:    string(buf.Bytes()),
+	}
+	if err := mail.Send(c, msg); err != nil {
+		c.Errorf("Couldn't send email: %v", err)
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(204)
 }
