@@ -14,7 +14,7 @@ type Task struct {
 	Assignee    string    `json:"assignee"`
 	Value       int       `json:"value"` // cents
 	Prev        time.Time `json:"prev"`
-	Next        time.Time `json:"next""`
+	Next        time.Time `json:"next"`
 	Disabled    bool      `json:"disabled"`
 
 	Key *datastore.Key `datastore:"-"`
