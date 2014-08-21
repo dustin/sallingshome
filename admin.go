@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"reflect"
+
 	"appengine"
 	"appengine/datastore"
 	"appengine/mail"
@@ -181,20 +183,27 @@ func adminDeleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
 }
 
+func fillKeyQuery(c appengine.Context, q *datastore.Query, results interface{}) error {
+	keys, err := q.GetAll(c, results)
+	if err == nil {
+		rslice := reflect.ValueOf(results).Elem()
+		for i := range keys {
+			if k, ok := rslice.Index(i).Interface().(Keyable); ok {
+				k.setKey(keys[i])
+			}
+		}
+	} else {
+		c.Errorf("Error executing query: %v", err)
+	}
+	return err
+}
+
 func adminListTasks(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	q := datastore.NewQuery("Task").Order("Disabled").Order("Name")
 
 	results := []Task{}
-	for t := q.Run(c); ; {
-		var x Task
-		k, err := t.Next(&x)
-		if err != nil {
-			break
-		}
-		x.Key = k
-		results = append(results, x)
-	}
+	fillKeyQuery(c, q, &results)
 	mustEncode(w, results)
 }
 
@@ -259,38 +268,19 @@ func adminListUsers(w http.ResponseWriter, r *http.Request) {
 	q := datastore.NewQuery("User").Order("Name")
 
 	results := []User{}
-	for t := q.Run(c); ; {
-		var x User
-		k, err := t.Next(&x)
-		if err != nil {
-			break
-		}
-		x.Key = k
-		results = append(results, x)
-	}
-
+	fillKeyQuery(c, q, &results)
 	mustEncode(w, results)
 }
 
 func adminListUnpaid(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
-	results := []LoggedTask{}
-
 	q := datastore.NewQuery("LoggedTask").
 		Filter("Paid = ", false).
 		Order("Completed")
 
-	for t := q.Run(c); ; {
-		var x LoggedTask
-		k, err := t.Next(&x)
-		if err != nil {
-			break
-		}
-		x.Key = k
-		results = append(results, x)
-	}
-
+	results := []LoggedTask{}
+	fillKeyQuery(c, q, &results)
 	mustEncode(w, results)
 }
 

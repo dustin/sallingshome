@@ -20,6 +20,10 @@ type Task struct {
 	Key *datastore.Key `datastore:"-"`
 }
 
+func (t *Task) setKey(to *datastore.Key) {
+	t.Key = to
+}
+
 func (t *Task) updateTime() {
 	t.Next = time.Now().Add(time.Hour * 24 * time.Duration(t.Period))
 
@@ -40,6 +44,10 @@ type User struct {
 	Key *datastore.Key `datastore:"-"`
 }
 
+func (u *User) setKey(to *datastore.Key) {
+	u.Key = to
+}
+
 type LoggedTask struct {
 	Task      *datastore.Key
 	User      *datastore.Key
@@ -53,4 +61,12 @@ type LoggedTask struct {
 	Amount int    `json:"amount"`
 
 	Key *datastore.Key `datastore:"-",json:"key"`
+}
+
+func (l *LoggedTask) setKey(to *datastore.Key) {
+	l.Key = to
+}
+
+type Keyable interface {
+	setKey(*datastore.Key)
 }
