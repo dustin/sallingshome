@@ -123,7 +123,6 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
 	taskIds := []*datastore.Key{}
 	for _, s := range r.Form["task"] {
 		k, err := datastore.DecodeKey(s)

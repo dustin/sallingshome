@@ -210,8 +210,6 @@ func adminListTasks(w http.ResponseWriter, r *http.Request) {
 func adminNewTask(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
-	r.ParseForm()
-
 	asInt := func(s string) int {
 		i, err := strconv.Atoi(s)
 		if err != nil {
@@ -243,8 +241,6 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 
 func adminNewUser(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-
-	r.ParseForm()
 
 	user := User{
 		Name:  r.FormValue("name"),
@@ -289,7 +285,6 @@ func adminMarkPaid(w http.ResponseWriter, r *http.Request) {
 
 	action := r.FormValue("action")
 
-	r.ParseForm()
 	keys := make([]*datastore.Key, 0, len(r.Form["pay"]))
 	for _, s := range r.Form["pay"] {
 		k, err := datastore.DecodeKey(s)
