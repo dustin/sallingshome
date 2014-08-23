@@ -36,10 +36,7 @@ func init() {
 }
 
 func serveStaticAdmin(w http.ResponseWriter, r *http.Request) {
-	err := templates.ExecuteTemplate(w, "admin.html", nil)
-	if err != nil {
-		panic(err)
-	}
+	execTemplate(appengine.NewContext(r), w, "admin.html", nil)
 }
 
 func asInt(s string) int {
@@ -331,7 +328,7 @@ func serveAdmin(w http.ResponseWriter, r *http.Request) {
 
 	c.Infof("Got admin request from %v", u)
 
-	templates.ExecuteTemplate(w, "admin.html", u)
+	execTemplate(c, w, "admin.html", u)
 }
 
 type mailTask struct {
@@ -363,14 +360,13 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	buf := &bytes.Buffer{}
-	err := templates.ExecuteTemplate(buf, "mail.txt",
+	err := execTemplate(c, buf, "mail.txt",
 		struct {
 			Total  int
 			People map[string]mailTask
 		}{total, people})
 	if err != nil {
 		c.Errorf("Template error: %v", err)
-		http.Error(w, err.Error(), 500)
 		return
 	}
 

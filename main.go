@@ -174,6 +174,20 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
+func execTemplate(c appengine.Context, w io.Writer, name string,
+	obj interface{}) error {
+
+	err := templates.ExecuteTemplate(w, name, obj)
+
+	if err != nil {
+		c.Errorf("Error executing template: %v", err)
+		if wh, ok := w.(http.ResponseWriter); ok {
+			http.Error(wh, "Error executing template", 500)
+		}
+	}
+	return err
+}
+
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
@@ -187,7 +201,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 	c.Infof("Got a request from %v", u)
 
-	templates.ExecuteTemplate(w, "index.html",
+	execTemplate(c, w, "index.html",
 		map[string]interface{}{
 			"user":  u,
 			"tasks": iterateUserTasks(c, su),
