@@ -180,7 +180,7 @@ func execTemplate(c appengine.Context, w io.Writer, name string,
 	err := templates.ExecuteTemplate(w, name, obj)
 
 	if err != nil {
-		c.Errorf("Error executing template: %v", err)
+		c.Errorf("Error executing template %v: %v", name, err)
 		if wh, ok := w.(http.ResponseWriter); ok {
 			http.Error(wh, "Error executing template", 500)
 		}
