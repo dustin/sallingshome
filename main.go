@@ -80,12 +80,12 @@ func iterateUserTasks(c appengine.Context, u User) chan Task {
 		}
 	}
 
+	wg.Add(2)
 	go func() {
 		wg.Wait()
 		close(ch)
 	}()
 
-	wg.Add(2)
 	go querier("")
 	go querier(u.Name)
 
