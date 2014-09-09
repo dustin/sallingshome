@@ -3,3 +3,8 @@ cron:
   url: /admin/cron/topay/
   schedule: every sunday 21:00
   timezone: US/Pacific
+
+- description: auto pays
+  url: /admin/cron/auto/
+  schedule: every 24 hours
+  timezone: US/Pacific

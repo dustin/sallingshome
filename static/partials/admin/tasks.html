@@ -23,8 +23,10 @@
     Repeats every
     <span ng-click="t.editing = true" ng-hide="t.editing">{{t.period}}</span>
     <span ng-show="t.editing"><input ng-model="t.period" /></span>
-    days.  Next up:  <span title="{{t.next}}">{{t.next | relDate}}</span>
+    days.  Next up:  <span title="{{t.next}}">{{t.next |
+    relDate}}</span>
   </p>
+  <p>Automatic?  <input type="checkbox" ng-model="t.automatic" /></p>
 
   <h4>Value</h4>
   <p>
@@ -71,6 +73,7 @@ Total value:  {{total | money}}
 <br/>
 Repeat: <select name="rtype"><option value="Normal">Normal</option></select>
 <input type="text" name="period" /><br/>
+Automatic?  <input name="automatic" type="checkbox" /><br/>
 Value: <input type="text" name="value" /><br/>
 Description:<br/>
 <textarea name="description"></textarea>

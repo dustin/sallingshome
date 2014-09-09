@@ -16,6 +16,7 @@ type Task struct {
 	Prev        time.Time `json:"prev"`
 	Next        time.Time `json:"next"`
 	Disabled    bool      `json:"disabled"`
+	Automatic   bool      `json:"automatic"`
 
 	Key *datastore.Key `datastore:"-"`
 }

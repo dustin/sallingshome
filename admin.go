@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"reflect"
@@ -21,6 +22,7 @@ func init() {
 
 	http.HandleFunc("/api/admin/topay/", adminListUnpaid)
 	http.HandleFunc("/admin/cron/topay/", adminMailUnpaid)
+	http.HandleFunc("/admin/cron/auto/", adminAutoPay)
 
 	http.HandleFunc("/admin/tasks/new", adminNewTask)
 	http.HandleFunc("/api/admin/tasks/update/", adminUpdateTask)
@@ -107,7 +109,8 @@ func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
 	task.Description = r.FormValue("description")
 	task.Value = asInt(r.FormValue("value"))
 	task.Period = asInt(r.FormValue("period"))
-	task.Disabled = r.FormValue("disabled") == "true"
+	task.Disabled = mightParseBool(r.FormValue("disabled"))
+	task.Automatic = mightParseBool(r.FormValue("automatic"))
 	task.Assignee = r.FormValue("assignee")
 
 	if _, err := datastore.Put(c, k, task); err != nil {
@@ -204,6 +207,14 @@ func adminListTasks(w http.ResponseWriter, r *http.Request) {
 	mustEncode(w, results)
 }
 
+func mightParseBool(s string) bool {
+	switch strings.ToLower(s) {
+	case "on", "true", "1", "y", "t", "yes":
+		return true
+	}
+	return false
+}
+
 func adminNewTask(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
@@ -220,6 +231,7 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 		Description: r.FormValue("description"),
 		Assignee:    r.FormValue("assignee"),
 		RType:       r.FormValue("rtype"),
+		Automatic:   mightParseBool(r.FormValue("automatic")),
 		Period:      asInt(r.FormValue("period")),
 		Value:       asInt(r.FormValue("value")),
 		Next:        time.Now().UTC(),
@@ -380,6 +392,65 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Couldn't send email: %v", err)
 		http.Error(w, err.Error(), 500)
 		return
+	}
+
+	w.WriteHeader(204)
+}
+
+func adminAutoPay(w http.ResponseWriter, r *http.Request) {
+	now := time.Now()
+	c := appengine.NewContext(r)
+	q := datastore.NewQuery("Task").
+		Filter("Disabled =", false).
+		Filter("Automatic = ", true).
+		Filter("Next < ", now)
+
+	tasks := []*Task{}
+	if err := fillKeyQuery(c, q, &tasks); err != nil {
+		c.Warningf("Error finding automatic things: %v", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	if len(tasks) == 0 {
+		c.Infof("No automatic tasks.")
+		w.WriteHeader(204)
+		return
+	}
+
+	storeKeys := make([]*datastore.Key, 0, 2*len(tasks))
+	vals := []interface{}{}
+
+	for i := range tasks {
+		c.Infof("Recording automatic task %q for %v at %.2f", tasks[i].Name,
+			tasks[i].Assignee, float64(tasks[i].Value)/100.0)
+
+		su, err := getUserByEmail(c, tasks[i].Assignee)
+		if err != nil {
+			c.Warningf("Failed to look up user %v: %v", tasks[i].Assignee, err)
+			w.WriteHeader(500)
+			return
+		}
+
+		tasks[i].updateTime()
+		tasks[i].Prev = now
+		storeKeys = append(storeKeys, tasks[i].Key)
+		vals = append(vals, tasks[i])
+
+		storeKeys = append(storeKeys,
+			datastore.NewIncompleteKey(c, "LoggedTask", nil))
+		vals = append(vals, &LoggedTask{
+			Task:      tasks[i].Key,
+			User:      su.Key,
+			Completed: now,
+			Who:       su.Name,
+			Name:      tasks[i].Name,
+			Amount:    tasks[i].Value,
+		})
+	}
+
+	if _, err := datastore.PutMulti(c, storeKeys, vals); err != nil {
+		panic(err)
 	}
 
 	w.WriteHeader(204)

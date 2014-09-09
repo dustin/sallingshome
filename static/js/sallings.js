@@ -97,7 +97,8 @@ function AdminTasksCtrl($scope, $http) {
                    "&name=" + encodeURIComponent(t.name) +
                    "&description=" + encodeURIComponent(t.description) +
                    "&assignee=" + encodeURIComponent(t.assignee) +
-                   "&period=" + t.period + "&value=" + t.value,
+                   "&period=" + t.period + "&value=" + t.value +
+                   "&automatic=" + t.automatic,
                    {headers: {"Content-Type": "application/x-www-form-urlencoded"}}).
             success(function(e) {
                 t.editing = false;

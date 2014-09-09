@@ -51,7 +51,7 @@ func currentUser(w http.ResponseWriter, r *http.Request) {
 	mustEncode(w, user.Current(c))
 }
 
-func iterateUserTasks(c appengine.Context, u User) chan Task {
+func iterateUserTasks(c appengine.Context, u User, auto bool) chan Task {
 	ch := make(chan Task)
 
 	wg := sync.WaitGroup{}
@@ -64,6 +64,7 @@ func iterateUserTasks(c appengine.Context, u User) chan Task {
 			Filter("Next < ", now).
 			Filter("Disabled = ", false).
 			Filter("Assignee = ", assignee).
+			Filter("Automatic = ", auto).
 			Order("Next")
 
 		for t := q.Run(c); ; {
@@ -92,12 +93,16 @@ func iterateUserTasks(c appengine.Context, u User) chan Task {
 	return ch
 }
 
-// Get the user record for the datastore user.
-func getUser(c appengine.Context, u *user.User) (rv User, err error) {
-	k := datastore.NewKey(c, "User", u.Email, 0, nil)
+func getUserByEmail(c appengine.Context, e string) (rv User, err error) {
+	k := datastore.NewKey(c, "User", e, 0, nil)
 	err = datastore.Get(c, k, &rv)
 	rv.Key = k
 	return
+}
+
+// Get the user record for the datastore user.
+func getUser(c appengine.Context, u *user.User) (rv User, err error) {
+	return getUserByEmail(c, u.Email)
 }
 
 func mustEncode(w io.Writer, i interface{}) {
@@ -204,6 +209,6 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 	execTemplate(c, w, "index.html",
 		map[string]interface{}{
 			"user":  u,
-			"tasks": iterateUserTasks(c, su),
+			"tasks": iterateUserTasks(c, su, false),
 		})
 }
