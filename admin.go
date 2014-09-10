@@ -422,8 +422,8 @@ func adminAutoPay(w http.ResponseWriter, r *http.Request) {
 	vals := []interface{}{}
 
 	for i := range tasks {
-		c.Infof("Recording automatic task %q for %v at %.2f", tasks[i].Name,
-			tasks[i].Assignee, float64(tasks[i].Value)/100.0)
+		c.Infof("Recording automatic task %q for %v at %s", tasks[i].Name,
+			tasks[i].Assignee, moneyFmt(tasks[i].Value))
 
 		su, err := getUserByEmail(c, tasks[i].Assignee)
 		if err != nil {

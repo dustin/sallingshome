@@ -25,11 +25,7 @@ func init() {
 			}
 			return ""
 		},
-		"money": func(i int) string {
-			dollars := i / 100
-			cents := i % 100
-			return fmt.Sprintf("$%d.%02d", dollars, cents)
-		},
+		"money": moneyFmt,
 	}).ParseGlob("templates/*")
 	if err != nil {
 		panic("Couldn't parse templates: " + err.Error())
@@ -38,6 +34,12 @@ func init() {
 	http.HandleFunc("/api/currentuser/", currentUser)
 	http.HandleFunc("/complete", serveComplete)
 	http.HandleFunc("/logout", logoutRedirect)
+}
+
+func moneyFmt(i int) string {
+	dollars := i / 100
+	cents := i % 100
+	return fmt.Sprintf("$%d.%02d", dollars, cents)
 }
 
 func logoutRedirect(w http.ResponseWriter, r *http.Request) {
