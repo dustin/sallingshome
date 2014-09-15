@@ -191,6 +191,10 @@ func fillKeyQuery(c appengine.Context, q *datastore.Query, results interface{}) 
 		for i := range keys {
 			if k, ok := rslice.Index(i).Interface().(Keyable); ok {
 				k.setKey(keys[i])
+			} else if k, ok := rslice.Index(i).Addr().Interface().(Keyable); ok {
+				k.setKey(keys[i])
+			} else {
+				c.Infof("Warning: %v is not Keyable", rslice.Index(i).Interface())
 			}
 		}
 	} else {
