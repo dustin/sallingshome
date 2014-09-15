@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	"reflect"
@@ -343,9 +344,15 @@ func serveAdmin(w http.ResponseWriter, r *http.Request) {
 	execTemplate(c, w, "admin.html", u)
 }
 
+type mailUserTask struct {
+	Task     LoggedTask
+	Quantity int
+	Subtotal int
+}
+
 type mailTask struct {
 	Amount int
-	Tasks  []LoggedTask
+	Tasks  map[string]*mailUserTask
 }
 
 func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
@@ -356,7 +363,7 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 
 	q := datastore.NewQuery("LoggedTask").
 		Filter("Paid = ", false).
-		Order("Completed")
+		Order("Name")
 
 	for t := q.Run(c); ; {
 		var x LoggedTask
@@ -367,12 +374,24 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 		total += x.Amount
 		p := people[x.Who]
 		p.Amount += x.Amount
-		p.Tasks = append(p.Tasks, x)
+
+		mut, ok := p.Tasks[x.Name]
+		if !ok {
+			mut = &mailUserTask{Task: x}
+			if p.Tasks == nil {
+				p.Tasks = map[string]*mailUserTask{}
+			}
+			p.Tasks[x.Name] = mut
+		}
+
+		mut.Quantity++
+		mut.Subtotal += x.Amount
 		people[x.Who] = p
 	}
 
 	buf := &bytes.Buffer{}
-	err := execTemplate(c, buf, "mail.txt",
+	tw := tabwriter.NewWriter(buf, 0, 2, 1, ' ', 0)
+	err := execTemplate(c, tw, "mail.txt",
 		struct {
 			Total  int
 			People map[string]mailTask
@@ -381,6 +400,7 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Template error: %v", err)
 		return
 	}
+	tw.Flush()
 
 	msg := &mail.Message{
 		Sender:  "Dustin Sallings <dsallings@gmail.com>",
@@ -388,6 +408,7 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 		Subject: "Payment Report",
 		Body:    string(buf.Bytes()),
 	}
+	c.Infof("Sending:\n%s\n", msg.Body)
 	if err := mail.Send(c, msg); err != nil {
 		c.Errorf("Couldn't send email: %v", err)
 		http.Error(w, err.Error(), 500)
