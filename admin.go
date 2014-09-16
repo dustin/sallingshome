@@ -103,7 +103,9 @@ func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	task := &Task{}
 	if err := datastore.Get(c, k, task); err != nil {
-		panic(err)
+		c.Warningf("Error getting task %v: %v", k, err)
+		http.Error(w, err.Error(), 404)
+		return
 	}
 
 	task.Name = r.FormValue("name")
@@ -115,8 +117,11 @@ func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
 	task.Assignee = r.FormValue("assignee")
 
 	if _, err := datastore.Put(c, k, task); err != nil {
-		panic(err)
+		c.Warningf("Error storing task %v, %+v: %v", k, task, err)
+		http.Error(w, err.Error(), 500)
+		return
 	}
+	w.WriteHeader(204)
 }
 
 func adminTaskMakeAvailable(w http.ResponseWriter, r *http.Request) {
