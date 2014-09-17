@@ -88,7 +88,7 @@ func adminMarkTaskFor(w http.ResponseWriter, r *http.Request) {
 
 	c.Infof("Administratively logged task %q for %q", task.Name, u.Name)
 
-	mustEncode(w, map[string]interface{}{"next": task.Next})
+	mustEncode(c, w, map[string]interface{}{"next": task.Next})
 }
 
 func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +145,7 @@ func adminTaskMakeAvailable(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	mustEncode(w, map[string]interface{}{"next": task.Next})
+	mustEncode(c, w, map[string]interface{}{"next": task.Next})
 }
 
 func adminTaskMakeUnavailable(w http.ResponseWriter, r *http.Request) {
@@ -169,7 +169,7 @@ func adminTaskMakeUnavailable(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	mustEncode(w, map[string]interface{}{"next": task.Next})
+	mustEncode(c, w, map[string]interface{}{"next": task.Next})
 }
 
 func adminDeleteTask(w http.ResponseWriter, r *http.Request) {
@@ -214,7 +214,7 @@ func adminListTasks(w http.ResponseWriter, r *http.Request) {
 
 	results := []Task{}
 	fillKeyQuery(c, q, &results)
-	mustEncode(w, results)
+	mustEncode(c, w, results)
 }
 
 func mightParseBool(s string) bool {
@@ -284,7 +284,7 @@ func adminListUsers(w http.ResponseWriter, r *http.Request) {
 
 	results := []User{}
 	fillKeyQuery(c, q, &results)
-	mustEncode(w, results)
+	mustEncode(c, w, results)
 }
 
 func adminListUnpaid(w http.ResponseWriter, r *http.Request) {
@@ -296,7 +296,7 @@ func adminListUnpaid(w http.ResponseWriter, r *http.Request) {
 
 	results := []LoggedTask{}
 	fillKeyQuery(c, q, &results)
-	mustEncode(w, results)
+	mustEncode(c, w, results)
 }
 
 func adminMarkPaid(w http.ResponseWriter, r *http.Request) {

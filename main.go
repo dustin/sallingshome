@@ -50,7 +50,7 @@ func logoutRedirect(w http.ResponseWriter, r *http.Request) {
 func currentUser(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
-	mustEncode(w, user.Current(c))
+	mustEncode(c, w, user.Current(c))
 }
 
 func iterateUserTasks(c appengine.Context, u User, auto bool) chan Task {
@@ -107,15 +107,18 @@ func getUser(c appengine.Context, u *user.User) (rv User, err error) {
 	return getUserByEmail(c, u.Email)
 }
 
-func mustEncode(w io.Writer, i interface{}) {
+func mustEncode(c appengine.Context, w io.Writer, i interface{}) {
 	if headered, ok := w.(http.ResponseWriter); ok {
 		headered.Header().Set("Cache-Control", "no-cache")
 		headered.Header().Set("Content-type", "application/json")
 	}
 
-	e := json.NewEncoder(w)
-	if err := e.Encode(i); err != nil {
-		panic(err)
+	if err := json.NewEncoder(w).Encode(i); err != nil {
+		c.Errorf("Error json encoding: %v", err)
+		if h, ok := w.(http.ResponseWriter); ok {
+			http.Error(h, err.Error(), 500)
+		}
+		return
 	}
 }
 
