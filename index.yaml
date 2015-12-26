@@ -23,6 +23,13 @@ indexes:
 - kind: Task
   properties:
   - name: Assignee
+  - name: Automatic
+  - name: Disabled
+  - name: Next
+
+- kind: Task
+  properties:
+  - name: Assignee
   - name: Disabled
   - name: Name
 

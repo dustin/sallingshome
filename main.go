@@ -9,9 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"appengine"
-	"appengine/datastore"
-	"appengine/user"
+	"golang.org/x/net/context"
+
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/user"
 )
 
 var templates *template.Template
@@ -53,7 +56,7 @@ func currentUser(w http.ResponseWriter, r *http.Request) {
 	mustEncode(c, w, user.Current(c))
 }
 
-func iterateUserTasks(c appengine.Context, u User, auto bool) chan Task {
+func iterateUserTasks(c context.Context, u User, auto bool) chan Task {
 	ch := make(chan Task)
 
 	wg := sync.WaitGroup{}
@@ -75,7 +78,7 @@ func iterateUserTasks(c appengine.Context, u User, auto bool) chan Task {
 			if err == datastore.Done {
 				break
 			} else if err != nil {
-				c.Errorf("Error retrieving tasks: %v", err)
+				log.Errorf(c, "Error retrieving tasks: %v", err)
 				return
 			}
 			x.Key = k
@@ -95,7 +98,7 @@ func iterateUserTasks(c appengine.Context, u User, auto bool) chan Task {
 	return ch
 }
 
-func getUserByEmail(c appengine.Context, e string) (rv User, err error) {
+func getUserByEmail(c context.Context, e string) (rv User, err error) {
 	k := datastore.NewKey(c, "User", e, 0, nil)
 	err = datastore.Get(c, k, &rv)
 	rv.Key = k
@@ -103,18 +106,18 @@ func getUserByEmail(c appengine.Context, e string) (rv User, err error) {
 }
 
 // Get the user record for the datastore user.
-func getUser(c appengine.Context, u *user.User) (rv User, err error) {
+func getUser(c context.Context, u *user.User) (rv User, err error) {
 	return getUserByEmail(c, u.Email)
 }
 
-func mustEncode(c appengine.Context, w io.Writer, i interface{}) {
+func mustEncode(c context.Context, w io.Writer, i interface{}) {
 	if headered, ok := w.(http.ResponseWriter); ok {
 		headered.Header().Set("Cache-Control", "no-cache")
 		headered.Header().Set("Content-type", "application/json")
 	}
 
 	if err := json.NewEncoder(w).Encode(i); err != nil {
-		c.Errorf("Error json encoding: %v", err)
+		log.Errorf(c, "Error json encoding: %v", err)
 		if h, ok := w.(http.ResponseWriter); ok {
 			http.Error(h, err.Error(), 500)
 		}
@@ -142,7 +145,7 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 		taskIds = append(taskIds, k)
 	}
 
-	c.Infof("Doing tasks for %v:  %v", su, taskIds)
+	log.Infof(c, "Doing tasks for %v:  %v", su, taskIds)
 
 	tasks := make([]Task, len(taskIds))
 	err = datastore.GetMulti(c, taskIds, tasks)
@@ -174,7 +177,7 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Infof("Putting %#v in %v", vals, storeKeys)
+	log.Infof(c, "Putting %#v in %v", vals, storeKeys)
 
 	_, err = datastore.PutMulti(c, storeKeys, vals)
 	if err != nil {
@@ -184,13 +187,13 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
-func execTemplate(c appengine.Context, w io.Writer, name string,
+func execTemplate(c context.Context, w io.Writer, name string,
 	obj interface{}) error {
 
 	err := templates.ExecuteTemplate(w, name, obj)
 
 	if err != nil {
-		c.Errorf("Error executing template %v: %v", name, err)
+		log.Errorf(c, "Error executing template %v: %v", name, err)
 		if wh, ok := w.(http.ResponseWriter); ok {
 			http.Error(wh, "Error executing template", 500)
 		}
@@ -209,7 +212,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.Infof("Got a request from %v", u)
+	log.Infof(c, "Got a request from %v", u)
 
 	execTemplate(c, w, "index.html",
 		map[string]interface{}{

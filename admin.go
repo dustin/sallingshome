@@ -8,12 +8,15 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"reflect"
 
-	"appengine"
-	"appengine/datastore"
-	"appengine/mail"
-	"appengine/user"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/mail"
+	"google.golang.org/appengine/user"
 )
 
 func init() {
@@ -86,7 +89,7 @@ func adminMarkTaskFor(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	c.Infof("Administratively logged task %q for %q", task.Name, u.Name)
+	log.Infof(c, "Administratively logged task %q for %q", task.Name, u.Name)
 
 	mustEncode(c, w, map[string]interface{}{"next": task.Next})
 }
@@ -103,7 +106,7 @@ func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	task := &Task{}
 	if err := datastore.Get(c, k, task); err != nil {
-		c.Warningf("Error getting task %v: %v", k, err)
+		log.Warningf(c, "Error getting task %v: %v", k, err)
 		http.Error(w, err.Error(), 404)
 		return
 	}
@@ -117,7 +120,7 @@ func adminUpdateTask(w http.ResponseWriter, r *http.Request) {
 	task.Assignee = r.FormValue("assignee")
 
 	if _, err := datastore.Put(c, k, task); err != nil {
-		c.Warningf("Error storing task %v, %+v: %v", k, task, err)
+		log.Warningf(c, "Error storing task %v, %+v: %v", k, task, err)
 		http.Error(w, err.Error(), 500)
 		return
 	}
@@ -189,7 +192,7 @@ func adminDeleteTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
 }
 
-func fillKeyQuery(c appengine.Context, q *datastore.Query, results interface{}) error {
+func fillKeyQuery(c context.Context, q *datastore.Query, results interface{}) error {
 	keys, err := q.GetAll(c, results)
 	if err == nil {
 		rslice := reflect.ValueOf(results).Elem()
@@ -199,11 +202,11 @@ func fillKeyQuery(c appengine.Context, q *datastore.Query, results interface{}) 
 			} else if k, ok := rslice.Index(i).Addr().Interface().(Keyable); ok {
 				k.setKey(keys[i])
 			} else {
-				c.Infof("Warning: %v is not Keyable", rslice.Index(i).Interface())
+				log.Infof(c, "Warning: %v is not Keyable", rslice.Index(i).Interface())
 			}
 		}
 	} else {
-		c.Errorf("Error executing query: %v", err)
+		log.Errorf(c, "Error executing query: %v", err)
 	}
 	return err
 }
@@ -250,10 +253,10 @@ func adminNewTask(w http.ResponseWriter, r *http.Request) {
 	k, err := datastore.Put(c,
 		datastore.NewIncompleteKey(c, "Task", nil), &task)
 	if err != nil {
-		c.Warningf("Error storing task:  %v", err)
+		log.Warningf(c, "Error storing task:  %v", err)
 		panic(err)
 	}
-	c.Infof("Stored new thing with key %v", k)
+	log.Infof(c, "Stored new thing with key %v", k)
 
 	http.Redirect(w, r, "/admin/tasks/", 307)
 }
@@ -269,10 +272,10 @@ func adminNewUser(w http.ResponseWriter, r *http.Request) {
 	k, err := datastore.Put(c,
 		datastore.NewKey(c, "User", user.Email, 0, nil), &user)
 	if err != nil {
-		c.Warningf("Error storing user:  %v", err)
+		log.Warningf(c, "Error storing user:  %v", err)
 		panic(err)
 	}
-	c.Infof("Stored new thing with key %v", k)
+	log.Infof(c, "Stored new thing with key %v", k)
 
 	http.Redirect(w, r, "/admin/users/", 307)
 }
@@ -348,7 +351,7 @@ func serveAdmin(w http.ResponseWriter, r *http.Request) {
 
 	u := user.Current(c)
 
-	c.Infof("Got admin request from %v", u)
+	log.Infof(c, "Got admin request from %v", u)
 
 	execTemplate(c, w, "admin.html", u)
 }
@@ -406,7 +409,7 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 			People map[string]mailTask
 		}{total, people})
 	if err != nil {
-		c.Errorf("Template error: %v", err)
+		log.Errorf(c, "Template error: %v", err)
 		return
 	}
 	tw.Flush()
@@ -417,9 +420,9 @@ func adminMailUnpaid(w http.ResponseWriter, r *http.Request) {
 		Subject: "Payment Report",
 		Body:    string(buf.Bytes()),
 	}
-	c.Infof("Sending:\n%s\n", msg.Body)
+	log.Infof(c, "Sending:\n%s\n", msg.Body)
 	if err := mail.Send(c, msg); err != nil {
-		c.Errorf("Couldn't send email: %v", err)
+		log.Errorf(c, "Couldn't send email: %v", err)
 		http.Error(w, err.Error(), 500)
 		return
 	}
@@ -437,13 +440,13 @@ func adminAutoPay(w http.ResponseWriter, r *http.Request) {
 
 	tasks := []*Task{}
 	if err := fillKeyQuery(c, q, &tasks); err != nil {
-		c.Warningf("Error finding automatic things: %v", err)
+		log.Warningf(c, "Error finding automatic things: %v", err)
 		w.WriteHeader(500)
 		return
 	}
 
 	if len(tasks) == 0 {
-		c.Infof("No automatic tasks.")
+		log.Infof(c, "No automatic tasks.")
 		w.WriteHeader(204)
 		return
 	}
@@ -452,12 +455,12 @@ func adminAutoPay(w http.ResponseWriter, r *http.Request) {
 	vals := []interface{}{}
 
 	for i := range tasks {
-		c.Infof("Recording automatic task %q for %v at %s", tasks[i].Name,
+		log.Infof(c, "Recording automatic task %q for %v at %s", tasks[i].Name,
 			tasks[i].Assignee, moneyFmt(tasks[i].Value))
 
 		su, err := getUserByEmail(c, tasks[i].Assignee)
 		if err != nil {
-			c.Warningf("Failed to look up user %v: %v", tasks[i].Assignee, err)
+			log.Warningf(c, "Failed to look up user %v: %v", tasks[i].Assignee, err)
 			w.WriteHeader(500)
 			return
 		}

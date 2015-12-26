@@ -3,7 +3,7 @@ package sallingshome
 import (
 	"time"
 
-	"appengine/datastore"
+	"google.golang.org/appengine/datastore"
 )
 
 type Task struct {
