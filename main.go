@@ -93,7 +93,7 @@ func iterateUserTasks(c context.Context, u User, auto bool) chan Task {
 	}()
 
 	go querier("")
-	go querier(u.Name)
+	go querier(u.Email)
 
 	return ch
 }
