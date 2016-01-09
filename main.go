@@ -136,6 +136,12 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), 400)
+		fmt.Fprintf(w, "Can't parse form", u)
+		return
+	}
+
 	taskIds := []*datastore.Key{}
 	for _, s := range r.Form["task"] {
 		k, err := datastore.DecodeKey(s)
