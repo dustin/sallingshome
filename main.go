@@ -17,22 +17,17 @@ import (
 	"google.golang.org/appengine/user"
 )
 
-var templates *template.Template
+var templates = template.Must(template.New("").Funcs(map[string]interface{}{
+	"agecss": func(t time.Time) string {
+		if t.Before(time.Now().Add(time.Hour * -24 * 14)) {
+			return "old"
+		}
+		return ""
+	},
+	"money": moneyFmt,
+}).ParseGlob("templates/*"))
 
 func init() {
-	var err error
-	templates, err = template.New("").Funcs(map[string]interface{}{
-		"agecss": func(t time.Time) string {
-			if t.Before(time.Now().Add(time.Hour * -24 * 14)) {
-				return "old"
-			}
-			return ""
-		},
-		"money": moneyFmt,
-	}).ParseGlob("templates/*")
-	if err != nil {
-		panic("Couldn't parse templates: " + err.Error())
-	}
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/api/currentuser/", currentUser)
 	http.HandleFunc("/complete", serveComplete)
