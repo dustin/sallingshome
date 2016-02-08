@@ -182,7 +182,9 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 
 	_, err = datastore.PutMulti(c, storeKeys, vals)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), 500)
+		log.Errorf(c, "Error saving stuff: %v", err)
+		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
