@@ -71,7 +71,7 @@ func iterateUserTasks(c context.Context, u User, auto bool) chan Task {
 			var x Task
 			k, err := t.Next(&x)
 			if err == datastore.Done {
-				break
+				return
 			} else if err != nil {
 				log.Errorf(c, "Error retrieving tasks: %v", err)
 				return
