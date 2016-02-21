@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/simonz05/util/syncutil"
+
 	"golang.org/x/net/context"
 
 	"google.golang.org/appengine"
@@ -91,6 +93,50 @@ func iterateUserTasks(c context.Context, u User, auto bool) chan Task {
 	go querier(u.Email)
 
 	return ch
+}
+
+func projections(c context.Context, u User) (int64, int64, error) {
+	var projected, earned int64
+
+	g := syncutil.Group{}
+
+	g.Go(func() error {
+		q := datastore.NewQuery("Task").
+			Filter("Disabled = ", false).
+			Filter("Assignee = ", u.Email)
+
+		for t := q.Run(c); ; {
+			var x Task
+			_, err := t.Next(&x)
+			if err == datastore.Done {
+				return nil
+			} else if err != nil {
+				return err
+			}
+
+			projected += int64(float64(x.Value) * (90.0 / float64(x.Period)))
+		}
+	})
+
+	g.Go(func() error {
+		q := datastore.NewQuery("LoggedTask").
+			Filter("User = ", u).
+			Filter("Completed >=", time.Now().Add(-90*24*time.Hour))
+
+		for t := q.Run(c); ; {
+			var x LoggedTask
+			_, err := t.Next(&x)
+			if err == datastore.Done {
+				return nil
+			} else if err != nil {
+				return err
+			}
+
+			earned += int64(x.Amount)
+		}
+	})
+
+	return projected, earned, g.Err()
 }
 
 func getUserByEmail(c context.Context, e string) (rv User, err error) {
