@@ -277,8 +277,8 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		map[string]interface{}{
 			"user":      u,
 			"tasks":     iterateUserTasks(c, su, false),
-			"projected": projected,
-			"earned":    earned,
-			"missed":    projected - earned,
+			"projected": int(projected),
+			"earned":    int(earned),
+			"missed":    int(projected - earned),
 		})
 }
