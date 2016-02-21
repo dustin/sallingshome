@@ -20,6 +20,11 @@ indexes:
   - name: Paid
   - name: Name
 
+- kind: LoggedTask
+  properties:
+  - name: User
+  - name: Completed
+
 - kind: Task
   properties:
   - name: Assignee

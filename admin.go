@@ -3,14 +3,15 @@ package sallingshome
 import (
 	"bytes"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
 
-	"golang.org/x/net/context"
+	"github.com/simonz05/util/syncutil"
 
-	"reflect"
+	"golang.org/x/net/context"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -287,6 +288,21 @@ func adminListUsers(w http.ResponseWriter, r *http.Request) {
 
 	results := []User{}
 	fillKeyQuery(c, q, &results)
+
+	g := syncutil.Group{}
+	for i := range results {
+		i := i
+		g.Go(func() error {
+			var err error
+			results[i].Projected, results[i].Earned, err = projections(c, results[i])
+			return err
+		})
+	}
+
+	if err := g.Err(); err != nil {
+		log.Errorf(c, "Error getting projections: %v", err)
+	}
+
 	mustEncode(c, w, results)
 }
 

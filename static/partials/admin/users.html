@@ -5,6 +5,9 @@
     <tr>
       <th>Name</th>
       <th>Email</th>
+      <th>Projected</th>
+      <th>Earned</th>
+      <th>Missed</th>
     </tr>
   </thead>
 
@@ -15,6 +18,9 @@
         <a href="/admin/tasks/toggle?id={{u.Key}}">{{u.name}}</a>
       </td>
       <td>{{u.email}}</td>
+      <td>{{u.Projected|money}}</td>
+      <td>{{u.Earned|money}}</td>
+      <td>{{u.Projected - u.Earned|money}}</td>
     </tr>
   </tbody>
 

@@ -5,7 +5,9 @@
   </head>
 
   <body>
-    <p>Welcome back, {{.user}}.</p>
+    <p>Welcome back, {{.user}}.  You've earned {{.earned|money}} out
+    of {{.projected|money}} over the last 30 days (you lost
+    {{.missed|money}}).</p>
 
     <h2>Your Tasks:</h2>
     <form method="POST" action="/complete">

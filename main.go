@@ -114,13 +114,15 @@ func projections(c context.Context, u User) (int64, int64, error) {
 				return err
 			}
 
+			log.Debugf(c, "Item worth %v every %v", x.Value, x.Period)
+
 			projected += int64(float64(x.Value) * (90.0 / float64(x.Period)))
 		}
 	})
 
 	g.Go(func() error {
 		q := datastore.NewQuery("LoggedTask").
-			Filter("User = ", u).
+			Filter("User = ", u.Key).
 			Filter("Completed >=", time.Now().Add(-90*24*time.Hour))
 
 		for t := q.Run(c); ; {
@@ -132,9 +134,12 @@ func projections(c context.Context, u User) (int64, int64, error) {
 				return err
 			}
 
+			log.Debugf(c, "Logged task worth %v", x.Amount)
+
 			earned += int64(x.Amount)
 		}
 	})
+	g.Wait()
 
 	return projected, earned, g.Err()
 }
@@ -263,9 +268,17 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 	log.Infof(c, "Got a request from %v", u)
 
+	projected, earned, err := projections(c, su)
+	if err != nil {
+		log.Errorf(c, "Error finding projections: %v", err)
+	}
+
 	execTemplate(c, w, "index.html",
 		map[string]interface{}{
-			"user":  u,
-			"tasks": iterateUserTasks(c, su, false),
+			"user":      u,
+			"tasks":     iterateUserTasks(c, su, false),
+			"projected": projected,
+			"earned":    earned,
+			"missed":    projected - earned,
 		})
 }

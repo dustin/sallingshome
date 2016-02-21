@@ -42,7 +42,9 @@ type User struct {
 	Email    string `json:"email"`
 	Disabled bool   `json:"disabled"`
 
-	Key *datastore.Key `datastore:"-"`
+	Key       *datastore.Key `datastore:"-"`
+	Projected int64          `datastore:"-"`
+	Earned    int64          `datastore:"-"`
 }
 
 func (u *User) setKey(to *datastore.Key) {
