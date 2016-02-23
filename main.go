@@ -95,7 +95,7 @@ func iterateUserTasks(c context.Context, u User, auto bool) chan Task {
 	return ch
 }
 
-func projections(c context.Context, u User) (int64, int64, error) {
+func projections(c context.Context, u User, days int) (int64, int64, error) {
 	var projected, earned int64
 
 	g := syncutil.Group{}
@@ -116,14 +116,14 @@ func projections(c context.Context, u User) (int64, int64, error) {
 
 			log.Debugf(c, "Item worth %v every %v", x.Value, x.Period)
 
-			projected += int64(float64(x.Value) * (90.0 / float64(x.Period)))
+			projected += int64(float64(x.Value) * (float64(days) / float64(x.Period)))
 		}
 	})
 
 	g.Go(func() error {
 		q := datastore.NewQuery("LoggedTask").
 			Filter("User = ", u.Key).
-			Filter("Completed >=", time.Now().Add(-90*24*time.Hour))
+			Filter("Completed >=", time.Now().Add(-24*time.Hour*time.Duration(days)))
 
 		for t := q.Run(c); ; {
 			var x LoggedTask
@@ -268,7 +268,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 	log.Infof(c, "Got a request from %v", u)
 
-	projected, earned, err := projections(c, su)
+	projected, earned, err := projections(c, su, 90)
 	if err != nil {
 		log.Errorf(c, "Error finding projections: %v", err)
 	}

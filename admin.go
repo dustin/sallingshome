@@ -294,7 +294,7 @@ func adminListUsers(w http.ResponseWriter, r *http.Request) {
 		i := i
 		g.Go(func() error {
 			var err error
-			results[i].Projected, results[i].Earned, err = projections(c, results[i])
+			results[i].Projected, results[i].Earned, err = projections(c, results[i], 90)
 			return err
 		})
 	}
