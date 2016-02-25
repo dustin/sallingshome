@@ -9,7 +9,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/simonz05/util/syncutil"
+	"go4.org/syncutil"
 
 	"golang.org/x/net/context"
 
