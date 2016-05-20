@@ -184,7 +184,7 @@ func serveComplete(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), 400)
-		fmt.Fprintf(w, "Can't parse form", u)
+		fmt.Fprintf(w, "Can't parse form from %v", u)
 		return
 	}
 
