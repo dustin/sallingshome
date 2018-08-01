@@ -2,6 +2,7 @@ package sallingshome
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -10,8 +11,6 @@ import (
 	"time"
 
 	"go4.org/syncutil"
-
-	"golang.org/x/net/context"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"

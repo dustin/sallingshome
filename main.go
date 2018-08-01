@@ -1,6 +1,7 @@
 package sallingshome
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -10,8 +11,6 @@ import (
 	"time"
 
 	"go4.org/syncutil"
-
-	"golang.org/x/net/context"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
